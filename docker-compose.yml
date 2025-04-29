@@ -1,0 +1,19 @@
+version: '3.9'
+
+services:
+
+  db:
+    image: postgres:17.4
+    container_name: squares-postgres
+    environment:
+      POSTGRES_DB: squares
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpassword
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432" 
+    restart: unless-stopped
+
+volumes:
+  db-data:
