@@ -1,4 +1,7 @@
 
+# Env 
+.env
+
 # Compiled binaries
 *.exe
 *.exe~
