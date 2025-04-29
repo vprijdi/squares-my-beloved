@@ -3,12 +3,58 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
+)
+
+var (
+	ErrDuplicateEmail    = errors.New("a user with that email already exists")
+	ErrDuplicateUsername = errors.New("a user with that username already exists")
 )
 
 type UserStore struct {
 	db *sql.DB
 }
 
-func (s UserStore) Create(ctx context.Context) error {
+type User struct {
+	ID          int64   `json:"id"`
+	Email       string  `json:"email"`
+	Username    string  `json:"username"`
+	DisplayName *string `json:"display_name"`
+	Password    string  `json:"-"`
+	CreatedAt   string  `json:"created_at"`
+}
+
+func (s UserStore) Create(ctx context.Context, user *User) error {
+	query := `
+		INSERT INTO users (username, password, email, display_name)
+   		VALUES ($1, $2, $3, $4)
+    	RETURNING id, created_at
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	err := s.db.QueryRowContext(
+		ctx,
+		query,
+		user.Username,
+		user.Password,
+		user.Email,
+		user.DisplayName,
+	).Scan(
+		&user.ID,
+		&user.CreatedAt,
+	)
+
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
+			return ErrDuplicateEmail
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"`:
+			return ErrDuplicateUsername
+		default:
+			return err
+		}
+	}
 	return nil
 }
