@@ -3,10 +3,21 @@ package main
 import (
 	"log"
 
+	"github.com/joho/godotenv"
 	"github.com/muzhiknastya/squares-my-beloved/internal/db"
 	"github.com/muzhiknastya/squares-my-beloved/internal/env"
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
 )
+
+func init() {
+
+	if err := godotenv.Load(".env"); err != nil {
+
+		log.Println("Failed to load .env.", err, "Default values are used.")
+
+	}
+
+}
 
 func main() {
 	cfg := config{
