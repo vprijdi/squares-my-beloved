@@ -9,14 +9,12 @@ import (
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
 )
 
+const version = "0.0.1"
+
 func init() {
-
 	if err := godotenv.Load(".env"); err != nil {
-
 		log.Println("Failed to load .env.", err, "Default values are used.")
-
 	}
-
 }
 
 func main() {
@@ -28,6 +26,7 @@ func main() {
 			maxIdleConns: env.GetInt("DB_MAX_IDLE_CONNS", 30),
 			maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15m"),
 		},
+		env: env.GetString("ENV", "development"),
 	}
 
 	db, err := db.New(cfg.db.addr, cfg.db.maxOpenConns, cfg.db.maxIdleConns, cfg.db.maxIdleTime)
