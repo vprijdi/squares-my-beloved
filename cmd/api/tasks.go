@@ -9,7 +9,7 @@ import (
 )
 
 type createTaskPayload struct {
-	Title      string `json:"title"`
+	Title      string `json:"title" validate:"required,min=1,max=160"`
 	IsOptional bool   `json:"is_optional"`
 }
 
@@ -17,6 +17,11 @@ func (app *application) createTaskhandler(w http.ResponseWriter, r *http.Request
 	var payload createTaskPayload
 	if err := readJSON(w, r, &payload); err != nil {
 		writeJSONError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
