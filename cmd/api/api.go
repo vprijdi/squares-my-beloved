@@ -42,9 +42,11 @@ func (app *application) mount() http.Handler {
 		r.Get("/health", app.healthCheckHandler)
 
 		r.Route("/tasks", func(r chi.Router) {
-			r.Post("/", app.createTaskhandler)
+			r.Post("/", app.createBatchTasksHandler)
 
 			r.Route("/{taskID}", func(r chi.Router) {
+				r.Use(app.tasksContextMiddleware)
+
 				r.Get("/", app.getTaskHandler)
 			})
 		})

@@ -19,7 +19,7 @@ type Task struct {
 	CompletionsCount int32  `json:"completions_count"`
 }
 
-func (s *TaskStore) Create(ctx context.Context, task *Task) error {
+func (s *TaskStore) create(ctx context.Context, tx *sql.Tx, task *Task) error {
 	query := `
         INSERT INTO tasks (user_id, title, is_optional)
         VALUES ($1, $2, $3)
@@ -29,7 +29,7 @@ func (s *TaskStore) Create(ctx context.Context, task *Task) error {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	err := s.db.QueryRowContext(
+	err := tx.QueryRowContext(
 		ctx,
 		query,
 		task.UserID,
@@ -43,6 +43,17 @@ func (s *TaskStore) Create(ctx context.Context, task *Task) error {
 	)
 
 	return err
+}
+
+func (s *TaskStore) CreateTasks(ctx context.Context, tasks []*Task) error {
+	return withTx(s.db, ctx, func(tx *sql.Tx) error {
+		for _, task := range tasks {
+			if err := s.create(ctx, tx, task); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func (s *TaskStore) GetByID(ctx context.Context, taskID int64) (*Task, error) {
