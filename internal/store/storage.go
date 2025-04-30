@@ -19,7 +19,8 @@ type Storage struct {
 	Tasks interface {
 		create(context.Context, *sql.Tx, *Task) error
 		CreateTasks(context.Context, []*Task) error
-		GetByID(context.Context, int64) (*Task, error)
+		GetByID(ctx context.Context, taskID int64) (*Task, error)
+		Complete(ctx context.Context, taskID int64) error
 	}
 }
 

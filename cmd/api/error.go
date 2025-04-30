@@ -1,7 +1,12 @@
 package main
 
 import (
+	"errors"
 	"net/http"
+)
+
+var (
+	ErrEmptyTaskList = errors.New("at least one task is required")
 )
 
 func (app *application) internalServerError(w http.ResponseWriter, r *http.Request, err error) {

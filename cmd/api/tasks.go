@@ -10,9 +10,9 @@ import (
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
 )
 
-var (
-	ErrEmptyTaskList = errors.New("at least one task is required")
-)
+type taskKey string
+
+const taskCtx taskKey = "task"
 
 type createTaskPayload struct {
 	Title      string `json:"title" validate:"required,min=1,max=160"`
@@ -71,6 +71,20 @@ func (app *application) getTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) completeTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task := getTaskFromCtx(r)
+
+	ctx := r.Context()
+
+	if err := app.store.Tasks.Complete(ctx, task.ID); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (app *application) tasksContextMiddleware(next http.Handler) http.Handler {
@@ -94,12 +108,12 @@ func (app *application) tasksContextMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx = context.WithValue(ctx, "task", task)
+		ctx = context.WithValue(ctx, taskCtx, task)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func getTaskFromCtx(r *http.Request) *store.Task {
-	task, _ := r.Context().Value("task").(*store.Task)
+	task, _ := r.Context().Value(taskCtx).(*store.Task)
 	return task
 }
