@@ -6,13 +6,13 @@ import (
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
 )
 
-type CreateTaskPayload struct {
+type createTaskPayload struct {
 	Title      string `json:"title"`
 	IsOptional bool   `json:"is_optional"`
 }
 
 func (app *application) createTaskhandler(w http.ResponseWriter, r *http.Request) {
-	var payload CreateTaskPayload
+	var payload createTaskPayload
 	if err := readJSON(w, r, &payload); err != nil {
 		writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
