@@ -18,6 +18,7 @@ type Storage struct {
 	}
 	Tasks interface {
 		Create(context.Context, *Task) error
+		GetByID(context.Context, int64) (*Task, error)
 	}
 }
 

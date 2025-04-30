@@ -44,3 +44,31 @@ func (s *TaskStore) Create(ctx context.Context, task *Task) error {
 
 	return err
 }
+
+func (s *TaskStore) GetByID(ctx context.Context, taskID int64) (*Task, error) {
+	query := `
+	SELECT id, user_id, title, is_optional, created_at, updated_at, completions_count
+	FROM tasks
+	WHERE id = $1
+	`
+
+	var task Task
+	err := s.db.QueryRowContext(ctx, query, taskID).Scan(
+		&task.ID,
+		&task.UserID,
+		&task.Title,
+		&task.IsOptional,
+		&task.CreatedAt,
+		&task.UpdatedAt,
+		&task.CompletionsCount,
+	)
+
+	switch err {
+	case nil:
+		return &task, nil
+	case sql.ErrNoRows:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}

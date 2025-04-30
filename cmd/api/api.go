@@ -43,6 +43,10 @@ func (app *application) mount() http.Handler {
 
 		r.Route("/tasks", func(r chi.Router) {
 			r.Post("/", app.createTaskhandler)
+
+			r.Route("/{taskID}", func(r chi.Router) {
+				r.Get("/", app.getTaskHandler)
+			})
 		})
 	})
 

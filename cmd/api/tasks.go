@@ -2,7 +2,9 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
 )
 
@@ -32,8 +34,30 @@ func (app *application) createTaskhandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := writeJSON(w, http.StatusCreated, task); err != nil {
-		writeJSONError(w, http.StatusInternalServerError, err.Error())
+	if err := app.jsonResponse(w, http.StatusCreated, task); err != nil {
+		app.internalServerError(w, r, err)
 		return
 	}
+}
+
+func (app *application) getTaskHandler(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "taskID")
+	taskID, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		app.internalServerError(w, r, err)
+	}
+
+	ctx := r.Context()
+
+	task, err := app.store.Tasks.GetByID(ctx, taskID)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusCreated, task); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
 }
