@@ -2,6 +2,10 @@ include .env
 
 MIGRATIONS_PATH := ./cmd/migrate/migrations
 
+.PHONY: seed
+seed:
+	@go run cmd/migrate/seed/main.go
+	
 .PHONY: migrate-create
 migrate-create:
 	@migrate create -seq -ext sql -dir $(MIGRATIONS_PATH) $(filter-out $@,$(MAKECMDGOALS))
