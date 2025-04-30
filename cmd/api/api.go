@@ -48,6 +48,14 @@ func (app *application) mount() http.Handler {
 				r.Use(app.tasksContextMiddleware)
 
 				r.Get("/", app.getTaskHandler)
+				r.Patch("/complete", app.completeTaskHandler)
+			})
+		})
+
+		r.Route("/users", func(r chi.Router) {
+			r.Route("/{userID}", func(r chi.Router) {
+				r.Use(app.userContextMiddleware)
+				r.Get("/", app.getUserHandler)
 			})
 		})
 	})

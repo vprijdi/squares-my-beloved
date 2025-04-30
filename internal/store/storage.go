@@ -15,6 +15,7 @@ var (
 type Storage struct {
 	Users interface {
 		Create(context.Context, *User) error
+		GetByID(ctx context.Context, userID int64) (*User, error)
 	}
 	Tasks interface {
 		create(context.Context, *sql.Tx, *Task) error

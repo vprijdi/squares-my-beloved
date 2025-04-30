@@ -1,18 +1,11 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"net/http"
-	"strconv"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
 )
-
-type taskKey string
-
-const taskCtx taskKey = "task"
 
 type createTaskPayload struct {
 	Title      string `json:"title" validate:"required,min=1,max=160"`
@@ -85,35 +78,4 @@ func (app *application) completeTaskHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-}
-
-func (app *application) tasksContextMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		idParam := chi.URLParam(r, "taskID")
-		taskID, err := strconv.ParseInt(idParam, 10, 64)
-		if err != nil {
-			app.internalServerError(w, r, err)
-		}
-
-		ctx := r.Context()
-
-		task, err := app.store.Tasks.GetByID(ctx, taskID)
-		if err != nil {
-			switch err {
-			case store.ErrNotFound:
-				app.notFoundResponse(w, r, err)
-			default:
-				app.internalServerError(w, r, err)
-			}
-			return
-		}
-
-		ctx = context.WithValue(ctx, taskCtx, task)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-func getTaskFromCtx(r *http.Request) *store.Task {
-	task, _ := r.Context().Value(taskCtx).(*store.Task)
-	return task
 }
