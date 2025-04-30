@@ -69,6 +69,10 @@ func (app *application) getTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (app *application) completeTaskHandler(w http.ResponseWriter, r *http.Request) {
+	task := getTaskFromCtx(r)
+}
+
 func (app *application) tasksContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		idParam := chi.URLParam(r, "taskID")
