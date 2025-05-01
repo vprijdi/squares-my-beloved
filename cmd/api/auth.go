@@ -1,8 +1,11 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
 )
 
@@ -32,6 +35,28 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	if err := user.Password.Set(payload.Password); err != nil {
 		app.internalServerError(w, r, err)
+		return
+	}
+
+	ctx := r.Context()
+
+	plainToken := uuid.New().String()
+
+	// hash the token for storage but keep the plain token for email
+	hash := sha256.Sum256([]byte(plainToken))
+	hashToken := hex.EncodeToString(hash[:])
+
+	err := app.store.Users.CreateAndInvite(ctx, user, hashToken, app.config.mail.exp)
+
+	if err != nil {
+		switch err {
+		case store.ErrDuplicateEmail:
+			app.badRequestResponse(w, r, err)
+		case store.ErrDuplicateUsername:
+			app.badRequestResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
 		return
 	}
 

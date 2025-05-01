@@ -1,9 +1,7 @@
 package db
 
 import (
-	"context"
 	"fmt"
-	"log"
 	"math/rand"
 
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
@@ -56,24 +54,24 @@ var titles = []string{
 	"Prepare presentation",
 }
 
-func Seed(store store.Storage) {
-	ctx := context.Background()
+// func Seed(store store.Storage) {
+// 	ctx := context.Background()
 
-	users := generateUsers(10)
-	for _, user := range users {
-		if err := store.Users.Create(ctx, user); err != nil {
-			log.Println("Error creating user:", err)
-			return
-		}
-	}
+// 	users := generateUsers(10)
+// 	for _, user := range users {
+// 		if err := store.Users.Create(ctx, user); err != nil {
+// 			log.Println("Error creating user:", err)
+// 			return
+// 		}
+// 	}
 
-	tasks := generateTasks(20, users)
-	if err := store.Tasks.CreateTasks(ctx, tasks); err != nil {
-		log.Println("Error creating tasks:", err)
-		return
-	}
+// 	tasks := generateTasks(20, users)
+// 	if err := store.Tasks.CreateTasks(ctx, tasks); err != nil {
+// 		log.Println("Error creating tasks:", err)
+// 		return
+// 	}
 
-}
+// }
 
 func generateUsers(num int) []*store.User {
 	users := make([]*store.User, num)
