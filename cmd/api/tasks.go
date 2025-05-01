@@ -34,7 +34,7 @@ func (app *application) createBatchTasksHandler(w http.ResponseWriter, r *http.R
 		tasks[i] = &store.Task{
 			Title:      payload.Title,
 			IsOptional: payload.IsOptional,
-			UserID:     1, // TODO: change when auth
+			UserID:     5, // TODO: change when auth
 		}
 	}
 

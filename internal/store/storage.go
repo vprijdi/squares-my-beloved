@@ -17,9 +17,9 @@ type Storage struct {
 		Create(context.Context, *sql.Tx, *User) error
 		GetByID(ctx context.Context, userID int64) (*User, error)
 		CreateAndInvite(ctx context.Context, user *User, token string, invitationExp time.Duration) error
+		Activate(context.Context, string) error
 	}
 	Tasks interface {
-		create(context.Context, *sql.Tx, *Task) error
 		CreateTasks(context.Context, []*Task) error
 		GetByID(ctx context.Context, taskID int64) (*Task, error)
 		Complete(ctx context.Context, taskID int64) error
