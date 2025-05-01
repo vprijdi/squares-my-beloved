@@ -12,6 +12,18 @@ type createTaskPayload struct {
 	IsOptional bool   `json:"is_optional"`
 }
 
+// CreateBatchTasks godoc
+//
+//	@Summary		Create multiple tasks in a batch
+//	@Description	Create several tasks with a single request
+//	@Tags			tasks
+//	@Accept			json
+//	@Produce		json
+//	@Param			tasks	body		[]createTaskPayload		true	"List of tasks to create"
+//	@Success		201		{object}	map[string]interface{}	"Created tasks with count"
+//	@Failure		400		{object}	map[string]string		"Invalid request"
+//	@Failure		500		{object}	map[string]string		"Internal server error"
+//	@Router			/tasks [post]
 func (app *application) createBatchTasksHandler(w http.ResponseWriter, r *http.Request) {
 	var payloads []createTaskPayload
 	if err := readJSONArray(w, r, &payloads); err != nil {
@@ -53,6 +65,17 @@ func (app *application) createBatchTasksHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
+// GetTask godoc
+//
+//	@Summary		Get a specific task
+//	@Description	Get task by ID
+//	@Tags			tasks
+//	@Produce		json
+//	@Param			id	path		int					true	"Task ID"
+//	@Success		200	{object}	store.Task			"The requested task"
+//	@Failure		404	{object}	map[string]string	"Task not found"
+//	@Failure		500	{object}	map[string]string	"Internal server error"
+//	@Router			/tasks/{id} [get]
 func (app *application) getTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task := getTaskFromCtx(r)
 
@@ -62,6 +85,15 @@ func (app *application) getTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// CompleteTask godoc
+//	@Summary		Complete a task
+//	@Description	Mark a task as completed
+//	@Tags			tasks
+//	@Param			id	path	int	true	"Task ID"
+//	@Success		204	"No content"
+//	@Failure		404	{object}	map[string]string	"Task not found"
+//	@Failure		500	{object}	map[string]string	"Internal server error"
+//	@Router			/tasks/{id}/complete [patch]
 func (app *application) completeTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task := getTaskFromCtx(r)
 

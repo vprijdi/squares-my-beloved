@@ -21,6 +21,18 @@ type UserWithToken struct {
 	Token string `json:"token"`
 }
 
+// RegisterUser godoc
+//
+//	@Summary		Register a new user
+//	@Description	Creates a new user account and returns an activation token
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		RegisterUserPayload	true	"Registration data"
+//	@Success		201		{object}	UserWithToken		"User created with activation token"
+//	@Failure		400		{object}	map[string]string	"Invalid request/duplicate email or username"
+//	@Failure		500		{object}	map[string]string	"Internal server error"
+//	@Router			/v1/auth/register [post]
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 	var payload RegisterUserPayload
 
@@ -76,6 +88,16 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+// ActivateUser godoc
+//	@Summary		Activate user account
+//	@Description	Activates a user account using the activation token
+//	@Tags			auth
+//	@Param			token	path	string	true	"Activation token"
+//	@Success		204		"Account activated successfully"
+//	@Failure		400		{object}	map[string]string	"Invalid token"
+//	@Failure		404		{object}	map[string]string	"Token not found"
+//	@Failure		500		{object}	map[string]string	"Internal server error"
+//	@Router			/v1/auth/activate/{token} [get]
 func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	token := chi.URLParam(r, "token")
