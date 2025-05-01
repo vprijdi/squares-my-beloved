@@ -8,15 +8,17 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/muzhiknastya/squares-my-beloved/docs"
+	"github.com/muzhiknastya/squares-my-beloved/internal/auth"
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
 )
 
 type application struct {
-	config config
-	store  store.Storage
-	logger *zap.SugaredLogger
+	config        config
+	store         store.Storage
+	logger        *zap.SugaredLogger
+	authenticator auth.Authenticator
 }
 
 type config struct {
@@ -26,6 +28,17 @@ type config struct {
 	apiURL      string
 	frontendURL string
 	mail        mailConfig
+	auth        authConfig
+}
+
+type authConfig struct {
+	token tokenConfig
+}
+
+type tokenConfig struct {
+	secret string
+	exp    time.Duration
+	iss    string
 }
 
 type mailConfig struct {
@@ -57,9 +70,11 @@ func (app *application) mount() http.Handler {
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/register", app.registerUserHandler)
 			r.Get("/activate/{token}", app.activateUserHandler)
+			r.Post("/token", app.createTokenHandler)
 		})
 
 		r.Route("/tasks", func(r chi.Router) {
+			r.Use(app.authTokenMiddleware)
 			r.Post("/", app.createBatchTasksHandler)
 
 			r.Route("/{taskID}", func(r chi.Router) {

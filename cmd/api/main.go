@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/muzhiknastya/squares-my-beloved/internal/auth"
 	"github.com/muzhiknastya/squares-my-beloved/internal/db"
 	"github.com/muzhiknastya/squares-my-beloved/internal/env"
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
@@ -19,21 +20,21 @@ func init() {
 	}
 }
 
-//	@title						SquaresMyBeloved API
-//	@description				API for SquaresMyBeloved, a web app to track productivity
-//	@termsOfService				http://swagger.io/terms/
-//	@contact.name				API Support
-//	@contact.url				http://www.swagger.io/support
-//	@contact.email				support@swagger.io
-//	@license.name				Apache 2.0
-//	@license.url				http://www.apache.org/licenses/LICENSE-2.0.html
+// @title						SquaresMyBeloved API
+// @description				API for SquaresMyBeloved, a web app to track productivity
+// @termsOfService				http://swagger.io/terms/
+// @contact.name				API Support
+// @contact.url				http://www.swagger.io/support
+// @contact.email				support@swagger.io
+// @license.name				Apache 2.0
+// @license.url				http://www.apache.org/licenses/LICENSE-2.0.html
 //
-//	@BasePath					/v1
+// @BasePath					/v1
 //
-//	@securityDefinitions.apikey	ApiKeyAuth
-//	@in							header
-//	@name						Authorization
-//	@description
+// @securityDefinitions.apikey	ApiKeyAuth
+// @in							header
+// @name						Authorization
+// @description
 func main() {
 	// Config
 	cfg := config{
@@ -49,6 +50,13 @@ func main() {
 		env: env.GetString("ENV", "development"),
 		mail: mailConfig{
 			exp: time.Hour * 24 * 3,
+		},
+		auth: authConfig{
+			token: tokenConfig{
+				secret: env.GetString("AUTH_TOKEN_SECRET", "example"),
+				exp:    time.Hour * 24 * 3,
+				iss:    "gophersocial",
+			},
 		},
 	}
 
@@ -68,10 +76,13 @@ func main() {
 
 	store := store.NewStorage(db)
 
+	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.auth.token.secret, cfg.auth.token.iss, cfg.auth.token.iss)
+
 	app := &application{
-		config: cfg,
-		store:  store,
-		logger: logger,
+		config:        cfg,
+		store:         store,
+		logger:        logger,
+		authenticator: jwtAuthenticator,
 	}
 
 	mux := app.mount()

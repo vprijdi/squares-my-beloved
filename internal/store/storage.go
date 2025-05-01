@@ -18,6 +18,7 @@ type Storage struct {
 		GetByID(ctx context.Context, userID int64) (*User, error)
 		CreateAndInvite(ctx context.Context, user *User, token string, invitationExp time.Duration) error
 		Activate(context.Context, string) error
+		GetByEmail(ctx context.Context, email string) (*User, error)
 	}
 	Tasks interface {
 		CreateTasks(context.Context, []*Task) error
