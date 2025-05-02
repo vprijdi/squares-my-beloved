@@ -1,0 +1,2 @@
+ALTER TABLE tasks
+ADD COLUMN tier smallint NOT NULL DEFAULT 2;
