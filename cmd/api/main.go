@@ -8,6 +8,7 @@ import (
 	"github.com/muzhiknastya/squares-my-beloved/internal/auth"
 	"github.com/muzhiknastya/squares-my-beloved/internal/db"
 	"github.com/muzhiknastya/squares-my-beloved/internal/env"
+	"github.com/muzhiknastya/squares-my-beloved/internal/services"
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
 	"go.uber.org/zap"
 )
@@ -76,11 +77,14 @@ func main() {
 
 	store := store.NewStorage(db)
 
+	services := services.NewServices(&store)
+
 	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.auth.token.secret, cfg.auth.token.iss, cfg.auth.token.iss)
 
 	app := &application{
 		config:        cfg,
 		store:         store,
+		services:      services,
 		logger:        logger,
 		authenticator: jwtAuthenticator,
 	}

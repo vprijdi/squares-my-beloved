@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/muzhiknastya/squares-my-beloved/docs"
 	"github.com/muzhiknastya/squares-my-beloved/internal/auth"
+	"github.com/muzhiknastya/squares-my-beloved/internal/services"
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
@@ -17,6 +18,7 @@ import (
 type application struct {
 	config        config
 	store         store.Storage
+	services      services.Services
 	logger        *zap.SugaredLogger
 	authenticator auth.Authenticator
 }
