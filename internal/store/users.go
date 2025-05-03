@@ -25,14 +25,14 @@ type User struct {
 	Email       string   `json:"email"`
 	Username    string   `json:"username"`
 	DisplayName *string  `json:"display_name"`
-	Password    password `json:"-"`
+	Password    Password `json:"-"`
 	IsActive    bool     `json:"is_active"`
 	CreatedAt   string   `json:"created_at"`
 }
 
-type password struct {
-	text *string
-	hash []byte
+type Password struct {
+	Text *string
+	Hash []byte
 }
 
 func (s UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
@@ -49,7 +49,7 @@ func (s UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 		ctx,
 		query,
 		user.Username,
-		user.Password.hash,
+		user.Password.Hash,
 		user.Email,
 		user.DisplayName,
 	).Scan(
@@ -91,7 +91,7 @@ func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 		&user.Email,
 		&user.Username,
 		&user.DisplayName,
-		&user.Password.hash,
+		&user.Password.Hash,
 		&user.CreatedAt,
 		&user.IsActive,
 	)
@@ -122,7 +122,7 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 		&user.Username,
 		&user.Email,
 		&user.DisplayName,
-		&user.Password.hash,
+		&user.Password.Hash,
 		&user.CreatedAt,
 	)
 
@@ -137,19 +137,19 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 	return user, nil
 }
 
-func (p *password) Set(text string) error {
+func (p *Password) Set(text string) error {
 	hash, err := bcrypt.GenerateFromPassword([]byte(text), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 
-	p.text = &text
-	p.hash = hash
+	p.Text = &text
+	p.Hash = hash
 	return nil
 }
 
-func (p *password) Compare(text string) error {
-	return bcrypt.CompareHashAndPassword(p.hash, []byte(text))
+func (p *Password) Compare(text string) error {
+	return bcrypt.CompareHashAndPassword(p.Hash, []byte(text))
 }
 
 func (s *UserStore) CreateAndInvite(ctx context.Context, user *User, token string, invitationExp time.Duration) error {

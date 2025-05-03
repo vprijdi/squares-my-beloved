@@ -2,15 +2,20 @@ package api
 
 import (
 	"bytes"
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/muzhiknastya/squares-my-beloved/internal/store"
 )
 
-func TestUserRegistration(t *testing.T) {
+func TestRegisterUserHandler(t *testing.T) {
 	db, cleanup := newInMemTestDatabase(t)
 	defer cleanup()
 
@@ -222,5 +227,48 @@ func TestUserRegistration(t *testing.T) {
 		if response.Data.Token == "" {
 			t.Error("expected a token in the response")
 		}
+	})
+}
+
+func TestActivateUserHandler(t *testing.T) {
+	db, cleanup := newInMemTestDatabase(t)
+	defer cleanup()
+
+	testApp := newTestApplication(t, db)
+	testMux := testApp.Mount()
+
+	// Helper to create a test token without checking user state
+	createTestToken := func() string {
+		return uuid.New().String()
+	}
+
+	t.Run("should return 204 for valid token", func(t *testing.T) {
+		// Create a real user with invitation
+		user := &store.User{
+			Email:    "valid@example.com",
+			Username: "validuser",
+			IsActive: false,
+		}
+		_ = user.Password.Set("password")
+		token := createTestToken()
+		hash := sha256.Sum256([]byte(token))
+		_ = testApp.store.Users.CreateAndInvite(context.Background(), user, hex.EncodeToString(hash[:]), 24*time.Hour)
+
+		req, _ := http.NewRequest(http.MethodGet, "/v1/auth/activate/"+token, nil)
+		rr := executeRequest(req, testMux)
+		checkResponseCode(t, http.StatusNoContent, rr.Code)
+	})
+
+	t.Run("should return 404 for invalid token", func(t *testing.T) {
+		invalidToken := createTestToken()
+		req, _ := http.NewRequest(http.MethodGet, "/v1/auth/activate/"+invalidToken, nil)
+		rr := executeRequest(req, testMux)
+		checkResponseCode(t, http.StatusNotFound, rr.Code)
+	})
+
+	t.Run("should return 405 malformed token", func(t *testing.T) {
+		req, _ := http.NewRequest(http.MethodGet, "/v1/auth/activate/not-a-valid-token", nil)
+		rr := executeRequest(req, testMux)
+		checkResponseCode(t, http.StatusNotFound, rr.Code)
 	})
 }
