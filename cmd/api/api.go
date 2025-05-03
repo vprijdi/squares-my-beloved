@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"fmt"
@@ -15,46 +15,59 @@ import (
 	"go.uber.org/zap"
 )
 
-type application struct {
-	config        config
+const version = "0.0.1"
+
+type Application struct {
+	Config        Config
 	store         store.Storage
 	services      services.Services
 	logger        *zap.SugaredLogger
 	authenticator auth.Authenticator
 }
 
-type config struct {
-	addr        string
-	db          dbConfig
-	env         string
-	apiURL      string
-	frontendURL string
-	mail        mailConfig
-	auth        authConfig
+type Config struct {
+	Addr        string
+	DB          DBConfig
+	Env         string
+	ApiURL      string
+	FrontendURL string
+	Mail        MailConfig
+	Auth        AuthConfig
 }
 
-type authConfig struct {
-	token tokenConfig
+type AuthConfig struct {
+	Token TokenConfig
 }
 
-type tokenConfig struct {
-	secret string
-	exp    time.Duration
-	iss    string
+type TokenConfig struct {
+	Secret string
+	Exp    time.Duration
+	Iss    string
 }
 
-type mailConfig struct {
-	exp time.Duration
+type MailConfig struct {
+	Exp time.Duration
 }
 
-type dbConfig struct {
-	addr         string
-	maxOpenConns int
-	maxIdleConns int
-	maxIdleTime  string
+type DBConfig struct {
+	Addr         string
+	MaxOpenConns int
+	MaxIdleConns int
+	MaxIdleTime  string
 }
 
-func (app *application) mount() http.Handler {
+// NewApplication creates a new Application instance
+func NewApplication(config Config, store store.Storage, services services.Services, logger *zap.SugaredLogger, authenticator auth.Authenticator) *Application {
+	return &Application{
+		Config:        config,
+		store:         store,
+		services:      services,
+		logger:        logger,
+		authenticator: authenticator,
+	}
+}
+
+func (app *Application) Mount() http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -66,7 +79,7 @@ func (app *application) mount() http.Handler {
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/health", app.healthCheckHandler)
 
-		docsURL := fmt.Sprintf("%s/swagger/doc.json", app.config.addr)
+		docsURL := fmt.Sprintf("%s/swagger/doc.json", app.Config.Addr)
 		r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL(docsURL)))
 
 		r.Route("/auth", func(r chi.Router) {
@@ -99,23 +112,22 @@ func (app *application) mount() http.Handler {
 	return r
 }
 
-func (app *application) run(mux http.Handler) error {
+func (app *Application) Run(mux http.Handler) error {
 	// Docs
 	docs.SwaggerInfo.Version = version
-	docs.SwaggerInfo.Host = app.config.apiURL
+	docs.SwaggerInfo.Host = app.Config.ApiURL
 	docs.SwaggerInfo.BasePath = "/v1"
 
 	srv := &http.Server{
-		Addr:         app.config.addr,
+		Addr:         app.Config.Addr,
 		Handler:      mux,
 		WriteTimeout: time.Second * 30,
 		ReadTimeout:  time.Second * 10,
 		IdleTimeout:  time.Minute,
 	}
-
 	app.logger.Infow("server has started",
-		"addr", app.config.addr,
-		"env", app.config.env,
+		"addr", app.Config.Addr,
+		"env", app.Config.Env,
 	)
 
 	return srv.ListenAndServe()

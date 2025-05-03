@@ -1,4 +1,4 @@
-package main
+package api
 
 import "net/http"
 
@@ -10,10 +10,10 @@ import "net/http"
 //	@Success		200	{object}	map[string]string	"Returns application health status"
 //	@Failure		500	{object}	map[string]string	"When there's a server error while generating the response"
 //	@Router			/health [get]
-func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	data := map[string]string{
 		"status":  "ok",
-		"env":     app.config.env,
+		"env":     app.Config.Addr,
 		"version": version,
 	}
 

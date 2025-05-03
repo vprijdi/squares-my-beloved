@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ var (
 	ErrEmptyTaskList = errors.New("at least one task is required")
 )
 
-func (app *application) internalServerError(w http.ResponseWriter, r *http.Request, err error) {
+func (app *Application) internalServerError(w http.ResponseWriter, r *http.Request, err error) {
 	app.logger.Errorw("internal error",
 		"method", r.Method,
 		"path", r.URL.Path,
@@ -19,7 +19,7 @@ func (app *application) internalServerError(w http.ResponseWriter, r *http.Reque
 	writeJSONError(w, http.StatusInternalServerError, "the server encountered a problem")
 }
 
-func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
+func (app *Application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logger.Errorw("bad request error",
 		"method", r.Method,
 		"path", r.URL.Path,
@@ -29,7 +29,7 @@ func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Reques
 	writeJSONError(w, http.StatusBadRequest, err.Error())
 }
 
-func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request, err error) {
+func (app *Application) notFoundResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logger.Errorw("not found error",
 		"method", r.Method,
 		"path", r.URL.Path,
@@ -39,7 +39,7 @@ func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request,
 	writeJSONError(w, http.StatusNotFound, "resource not found")
 }
 
-func (app *application) unauthorizedErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+func (app *Application) unauthorizedErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logger.Errorf("unauthorized error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 
 	writeJSONError(w, http.StatusUnauthorized, "unauthorized")

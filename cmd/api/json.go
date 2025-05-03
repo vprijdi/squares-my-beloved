@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"encoding/json"
@@ -48,7 +48,7 @@ func writeJSONError(w http.ResponseWriter, status int, message string) error {
 	return writeJSON(w, status, &envelope{Error: message})
 }
 
-func (app *application) jsonResponse(w http.ResponseWriter, status int, data any) error {
+func (app *Application) jsonResponse(w http.ResponseWriter, status int, data any) error {
 	type envelope struct {
 		Data any `json:"data"`
 	}

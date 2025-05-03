@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"log"
@@ -18,7 +18,7 @@ import (
 //	@Failure		404		{object}	map[string]string	"User not found"
 //	@Failure		500		{object}	map[string]string	"Internal server error"
 //	@Router			/users/{userID} [get]
-func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 
 	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {
@@ -43,7 +43,7 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400	"Invalid request parameters"
 //	@Failure		500	"Server error"
 //	@Router			/users/{userID}/tasks [get]
-func (app *application) listUserTasksHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) listUserTasksHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 
 	tf := store.TaskFilters{

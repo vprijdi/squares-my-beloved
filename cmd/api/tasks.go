@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"errors"
@@ -26,7 +26,7 @@ type createTaskPayload struct {
 //	@Failure		500		{object}	map[string]string		"Internal server error"
 //	@Security		ApiKeyAuth
 //	@Router			/tasks [post]
-func (app *application) createBatchTasksHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) createBatchTasksHandler(w http.ResponseWriter, r *http.Request) {
 	var payloads []createTaskPayload
 	if err := readJSONArray(w, r, &payloads); err != nil {
 		app.badRequestResponse(w, r, err)
@@ -81,7 +81,7 @@ func (app *application) createBatchTasksHandler(w http.ResponseWriter, r *http.R
 //	@Failure		500	{object}	map[string]string	"Internal server error"
 //	@Security		ApiKeyAuth
 //	@Router			/tasks/{id} [get]
-func (app *application) getTaskHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) getTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task := getTaskFromCtx(r)
 
 	if err := app.jsonResponse(w, http.StatusCreated, task); err != nil {
@@ -101,7 +101,7 @@ func (app *application) getTaskHandler(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500	{object}	map[string]string	"Internal server error"
 //	@Security		ApiKeyAuth
 //	@Router			/tasks/{id}/complete [patch]
-func (app *application) completeTaskHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) completeTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task := getTaskFromCtx(r)
 
 	ctx := r.Context()

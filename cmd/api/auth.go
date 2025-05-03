@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"crypto/sha256"
@@ -35,7 +35,7 @@ type UserWithToken struct {
 //	@Failure		400		{object}	map[string]string	"Invalid request/duplicate email or username"
 //	@Failure		500		{object}	map[string]string	"Internal server error"
 //	@Router			/auth/register [post]
-func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 	var payload RegisterUserPayload
 
 	if err := readJSON(w, r, &payload); err != nil {
@@ -66,7 +66,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	hash := sha256.Sum256([]byte(plainToken))
 	hashToken := hex.EncodeToString(hash[:])
 
-	err := app.store.Users.CreateAndInvite(ctx, user, hashToken, app.config.mail.exp)
+	err := app.store.Users.CreateAndInvite(ctx, user, hashToken, app.Config.Mail.Exp)
 
 	if err != nil {
 		switch err {
@@ -101,7 +101,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 //	@Failure		404		{object}	map[string]string	"Token not found"
 //	@Failure		500		{object}	map[string]string	"Internal server error"
 //	@Router			/auth/activate/{token} [get]
-func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	token := chi.URLParam(r, "token")
 
@@ -142,7 +142,7 @@ type CreateUserTokenPayload struct {
 //	@Failure		401		{object}	error
 //	@Failure		500		{object}	error
 //	@Router			/auth/token [post]
-func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) createTokenHandler(w http.ResponseWriter, r *http.Request) {
 
 	var payload CreateUserTokenPayload
 
@@ -178,11 +178,11 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 	// generate the token
 	claims := jwt.MapClaims{
 		"sub": user.ID,
-		"exp": time.Now().Add(app.config.auth.token.exp).Unix(),
+		"exp": time.Now().Add(app.Config.Auth.Token.Exp).Unix(),
 		"iat": time.Now().Unix(),
 		"nbf": time.Now().Unix(),
-		"iss": app.config.auth.token.iss,
-		"aud": app.config.auth.token.iss,
+		"iss": app.Config.Auth.Token.Iss,
+		"aud": app.Config.Auth.Token.Iss,
 	}
 
 	token, err := app.authenticator.GenerateToken(claims)

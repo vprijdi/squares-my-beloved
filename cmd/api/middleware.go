@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"context"
@@ -18,7 +18,7 @@ type userKey string
 const taskCtx taskKey = "task"
 const userCtx userKey = "user"
 
-func (app *application) tasksContextMiddleware(next http.Handler) http.Handler {
+func (app *Application) tasksContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		idParam := chi.URLParam(r, "taskID")
 		taskID, err := strconv.ParseInt(idParam, 10, 64)
@@ -44,7 +44,7 @@ func (app *application) tasksContextMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (app *application) userContextMiddleware(next http.Handler) http.Handler {
+func (app *Application) userContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		idParam := chi.URLParam(r, "userID")
 		userID, err := strconv.ParseInt(idParam, 10, 64)
@@ -70,7 +70,7 @@ func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (app *application) authTokenMiddleware(next http.Handler) http.Handler {
+func (app *Application) authTokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		authHeader := r.Header.Get("Authorization")
