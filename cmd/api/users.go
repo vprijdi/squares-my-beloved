@@ -27,6 +27,7 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // listUserTasksHandler godoc
+//
 //	@Summary		List tasks for a specific user
 //	@Description	Get paginated and filtered list of tasks for the specified user ID
 //	@Tags			tasks
