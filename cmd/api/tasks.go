@@ -10,6 +10,7 @@ import (
 type createTaskPayload struct {
 	Title      string `json:"title" validate:"required,min=1,max=160"`
 	IsOptional bool   `json:"is_optional"`
+	Tier       int32  `json:"tier" validate:"oneof=0 1 2"`
 }
 
 // CreateBatchTasks godoc
@@ -37,6 +38,7 @@ func (app *application) createBatchTasksHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	user := getUserFromCtx(r)
 	tasks := make([]*store.Task, len(payloads))
 	for i, payload := range payloads {
 		if err := Validate.Struct(payload); err != nil {
@@ -47,7 +49,8 @@ func (app *application) createBatchTasksHandler(w http.ResponseWriter, r *http.R
 		tasks[i] = &store.Task{
 			Title:      payload.Title,
 			IsOptional: payload.IsOptional,
-			UserID:     5, // TODO: change when auth
+			Tier:       payload.Tier,
+			UserID:     user.ID,
 		}
 	}
 

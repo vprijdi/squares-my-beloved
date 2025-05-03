@@ -17,13 +17,15 @@ type Task struct {
 	CreatedAt        string `json:"created_at"`
 	UpdatedAt        string `json:"updated_at"`
 	CompletionsCount int32  `json:"completions_count"`
+	IsCompleted      bool   `json:"is_completed"`
+	Tier             int32  `json:"tier"`
 }
 
 func (s *TaskStore) create(ctx context.Context, tx *sql.Tx, task *Task) error {
 	query := `
-        INSERT INTO tasks (user_id, title, is_optional)
-        VALUES ($1, $2, $3)
-        RETURNING id, created_at, updated_at, completions_count
+        INSERT INTO tasks (user_id, title, is_optional, tier)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, created_at, updated_at, completed, completions_count
     `
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -35,10 +37,12 @@ func (s *TaskStore) create(ctx context.Context, tx *sql.Tx, task *Task) error {
 		task.UserID,
 		task.Title,
 		task.IsOptional,
+		task.Tier,
 	).Scan(
 		&task.ID,
 		&task.CreatedAt,
 		&task.UpdatedAt,
+		&task.IsCompleted,
 		&task.CompletionsCount,
 	)
 
@@ -58,7 +62,7 @@ func (s *TaskStore) CreateTasks(ctx context.Context, tasks []*Task) error {
 
 func (s *TaskStore) GetByID(ctx context.Context, taskID int64) (*Task, error) {
 	query := `
-	SELECT id, user_id, title, is_optional, created_at, updated_at, completions_count
+	SELECT id, user_id, title, is_optional, created_at, updated_at, completions_count, completed, tier
 	FROM tasks
 	WHERE id = $1
 	`
@@ -72,6 +76,8 @@ func (s *TaskStore) GetByID(ctx context.Context, taskID int64) (*Task, error) {
 		&task.CreatedAt,
 		&task.UpdatedAt,
 		&task.CompletionsCount,
+		&task.IsCompleted,
+		&task.Tier,
 	)
 
 	switch err {
@@ -111,4 +117,48 @@ func (s *TaskStore) Complete(ctx context.Context, taskID int64) error {
 	}
 
 	return nil
+}
+
+func (s *TaskStore) GetAllUserTasks(ctx context.Context, userID int64, tf *TaskFilters) ([]Task, error) {
+	query := `
+	SELECT t.id, t.user_id, t.title, t.is_optional, t.created_at, t.updated_at, 
+		   t.completions_count, t.completed, t.tier
+	FROM tasks t
+	WHERE t.user_id = $1
+	  AND ($4::text IS NULL OR t.created_at::date = $4::date)
+	  AND ($5::boolean IS NULL OR t.completed = $5)
+	ORDER BY t.created_at DESC
+	LIMIT $2
+	OFFSET $3;
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	rows, err := s.db.QueryContext(ctx, query, userID, tf.Limit, tf.Offset, tf.Date, tf.Completed)
+	if err != nil {
+		return nil, err
+	}
+
+	var filteredResult []Task
+	for rows.Next() {
+		var t Task
+		err := rows.Scan(
+			&t.ID,
+			&t.UserID,
+			&t.Title,
+			&t.IsOptional,
+			&t.CreatedAt,
+			&t.UpdatedAt,
+			&t.CompletionsCount,
+			&t.IsCompleted,
+			&t.Tier,
+		)
+		if err != nil {
+			return nil, err
+		}
+		filteredResult = append(filteredResult, t)
+	}
+
+	return filteredResult, err
 }

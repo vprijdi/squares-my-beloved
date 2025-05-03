@@ -172,6 +172,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/health": {
+            "get": {
+                "description": "Returns the current health status of the application along with environment and version information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Health check endpoint",
+                "responses": {
+                    "200": {
+                        "description": "Returns application health status",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "When there's a server error while generating the response",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/tasks": {
             "post": {
                 "security": [
@@ -377,6 +412,75 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/{userID}/tasks": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get paginated and filtered list of tasks for the specified user ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "List tasks for a specific user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 100,
+                        "description": "Results limit (1-100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Pagination offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date filter (today/yesterday/YYYY-MM-DD)",
+                        "name": "date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by completion status",
+                        "name": "completed",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Tasks returned successfully"
+                    },
+                    "400": {
+                        "description": "Invalid request parameters"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -456,6 +560,14 @@ const docTemplate = `{
                 "is_optional": {
                     "type": "boolean"
                 },
+                "tier": {
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2
+                    ]
+                },
                 "title": {
                     "type": "string",
                     "maxLength": 160,
@@ -475,8 +587,14 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "is_completed": {
+                    "type": "boolean"
+                },
                 "is_optional": {
                     "type": "boolean"
+                },
+                "tier": {
+                    "type": "integer"
                 },
                 "title": {
                     "type": "string"

@@ -24,6 +24,7 @@ type Storage struct {
 		CreateTasks(context.Context, []*Task) error
 		GetByID(ctx context.Context, taskID int64) (*Task, error)
 		Complete(ctx context.Context, taskID int64) error
+		GetAllUserTasks(ctx context.Context, userID int64, tf *TaskFilters) ([]Task, error)
 	}
 }
 

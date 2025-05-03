@@ -51,6 +51,12 @@ definitions:
     properties:
       is_optional:
         type: boolean
+      tier:
+        enum:
+        - 0
+        - 1
+        - 2
+        type: integer
       title:
         maxLength: 160
         minLength: 1
@@ -66,8 +72,12 @@ definitions:
         type: string
       id:
         type: integer
+      is_completed:
+        type: boolean
       is_optional:
         type: boolean
+      tier:
+        type: integer
       title:
         type: string
       updated_at:
@@ -200,6 +210,30 @@ paths:
       summary: Create authentication token
       tags:
       - auth
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Returns the current health status of the application along with
+        environment and version information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns application health status
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: When there's a server error while generating the response
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check endpoint
+      tags:
+      - health
   /tasks:
     post:
       consumes:
@@ -332,6 +366,53 @@ paths:
       summary: Get user details
       tags:
       - users
+  /users/{userID}/tasks:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated and filtered list of tasks for the specified user
+        ID
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      - default: 100
+        description: Results limit (1-100)
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - default: 0
+        description: Pagination offset
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      - description: Date filter (today/yesterday/YYYY-MM-DD)
+        in: query
+        name: date
+        type: string
+      - description: Filter by completion status
+        in: query
+        name: completed
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Tasks returned successfully
+        "400":
+          description: Invalid request parameters
+        "500":
+          description: Server error
+      security:
+      - ApiKeyAuth: []
+      summary: List tasks for a specific user
+      tags:
+      - tasks
 securityDefinitions:
   ApiKeyAuth:
     in: header

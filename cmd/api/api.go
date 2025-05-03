@@ -91,6 +91,7 @@ func (app *application) mount() http.Handler {
 			r.Route("/{userID}", func(r chi.Router) {
 				r.Use(app.userContextMiddleware)
 
+				r.Get("/tasks", app.listUserTasksHandler)
 				r.Get("/", app.getUserHandler)
 			})
 		})
