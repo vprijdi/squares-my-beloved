@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -271,4 +273,110 @@ func TestActivateUserHandler(t *testing.T) {
 		rr := executeRequest(req, testMux)
 		checkResponseCode(t, http.StatusNotFound, rr.Code)
 	})
+}
+
+func TestCreateTokenHandler(t *testing.T) {
+	db, cleanup := newInMemTestDatabase(t)
+	defer cleanup()
+
+	testApp := newTestApplication(t, db)
+	testMux := testApp.Mount()
+
+	// Request helper
+	makeTokenRequest := func(email, password string) *httptest.ResponseRecorder {
+		payload := map[string]string{
+			"email":    email,
+			"password": password,
+		}
+		body, _ := json.Marshal(payload)
+		req, _ := http.NewRequest(http.MethodPost, "/v1/auth/token", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		return executeRequest(req, testMux)
+	}
+
+	t.Run("successful token generation returns 201", func(t *testing.T) {
+		// Create test user directly in database without verification
+		err := store.WithTx(db, context.Background(), func(tx *sql.Tx) error {
+			user := &store.User{
+				Email:    "success@example.com",
+				Username: "testuser",
+				IsActive: true,
+			}
+			_ = user.Password.Set("validpass123")
+			return testApp.store.Users.Create(context.Background(), tx, user)
+		})
+		if err != nil {
+			t.Fatalf("setup failed: %v", err)
+		}
+
+		rr := makeTokenRequest("success@example.com", "validpass123")
+		checkResponseCode(t, http.StatusCreated, rr.Code)
+	})
+
+	t.Run("authentication failures return 401", func(t *testing.T) {
+		testCases := []struct {
+			name     string
+			email    string
+			password string
+		}{
+			{"wrong password", "user@example.com", "wrongpass"},
+			{"nonexistent user", "nonexistent@example.com", "anypass"},
+			{"inactive account", "inactive@example.com", "password123"},
+		}
+
+		// Create test data for cases that need it
+		err := store.WithTx(db, context.Background(), func(tx *sql.Tx) error {
+			// Active user for wrong password test
+			activeUser := &store.User{
+				Email:    "user@example.com",
+				Username: "activeuser",
+				IsActive: true,
+			}
+			_ = activeUser.Password.Set("correctpass")
+
+			// Inactive user
+			inactiveUser := &store.User{
+				Email:    "inactive@example.com",
+				Username: "inactiveuser",
+				IsActive: false,
+			}
+			_ = inactiveUser.Password.Set("password123")
+
+			if err := testApp.store.Users.Create(context.Background(), tx, activeUser); err != nil {
+				return err
+			}
+			return testApp.store.Users.Create(context.Background(), tx, inactiveUser)
+		})
+		if err != nil {
+			t.Fatalf("setup failed: %v", err)
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				rr := makeTokenRequest(tc.email, tc.password)
+				checkResponseCode(t, http.StatusUnauthorized, rr.Code)
+			})
+		}
+	})
+
+	t.Run("input validation errors return 400", func(t *testing.T) {
+		testCases := []struct {
+			name     string
+			email    string
+			password string
+		}{
+			{"invalid email format", "not-an-email", "validpass"},
+			{"empty email", "", "validpass"},
+			{"empty password", "valid@example.com", ""},
+			{"short password", "valid@example.com", "pw"},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				rr := makeTokenRequest(tc.email, tc.password)
+				checkResponseCode(t, http.StatusBadRequest, rr.Code)
+			})
+		}
+	})
+
 }

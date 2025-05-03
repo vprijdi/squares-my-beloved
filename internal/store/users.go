@@ -37,9 +37,9 @@ type Password struct {
 
 func (s UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 	query := `
-		INSERT INTO users (username, password, email, display_name)
-   		VALUES ($1, $2, $3, $4)
-    	RETURNING id, created_at, is_active
+		INSERT INTO users (username, password, email, display_name, is_active)
+   		VALUES ($1, $2, $3, $4, $5)
+    	RETURNING id, created_at 
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -52,10 +52,10 @@ func (s UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 		user.Password.Hash,
 		user.Email,
 		user.DisplayName,
+		user.IsActive,
 	).Scan(
 		&user.ID,
 		&user.CreatedAt,
-		&user.IsActive,
 	)
 
 	if err != nil {
@@ -153,7 +153,7 @@ func (p *Password) Compare(text string) error {
 }
 
 func (s *UserStore) CreateAndInvite(ctx context.Context, user *User, token string, invitationExp time.Duration) error {
-	return withTx(s.db, ctx, func(tx *sql.Tx) error {
+	return WithTx(s.db, ctx, func(tx *sql.Tx) error {
 		if err := s.Create(ctx, tx, user); err != nil {
 			return err
 		}
@@ -182,7 +182,7 @@ func (s *UserStore) createUserInvitation(ctx context.Context, tx *sql.Tx, token 
 }
 
 func (s *UserStore) Activate(ctx context.Context, token string) error {
-	return withTx(s.db, ctx, func(tx *sql.Tx) error {
+	return WithTx(s.db, ctx, func(tx *sql.Tx) error {
 		user, err := s.getUserFromInvitation(ctx, tx, token)
 		if err != nil {
 			return err

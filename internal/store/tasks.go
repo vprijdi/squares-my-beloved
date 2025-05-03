@@ -50,7 +50,7 @@ func (s *TaskStore) create(ctx context.Context, tx *sql.Tx, task *Task) error {
 }
 
 func (s *TaskStore) CreateTasks(ctx context.Context, tasks []*Task) error {
-	return withTx(s.db, ctx, func(tx *sql.Tx) error {
+	return WithTx(s.db, ctx, func(tx *sql.Tx) error {
 		for _, task := range tasks {
 			if err := s.create(ctx, tx, task); err != nil {
 				return err
