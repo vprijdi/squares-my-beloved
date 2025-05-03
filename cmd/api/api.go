@@ -77,7 +77,7 @@ func (app *Application) Mount() http.Handler {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Route("/v1", func(r chi.Router) {
-		r.Get("/health", app.healthCheckHandler)
+		r.Get("/health", app.HealthCheckHandler)
 
 		docsURL := fmt.Sprintf("%s/swagger/doc.json", app.Config.Addr)
 		r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL(docsURL)))
