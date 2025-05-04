@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -304,4 +305,330 @@ func TestCompleteTaskHandler(t *testing.T) {
 
 		checkResponseCode(t, http.StatusInternalServerError, rr.Code)
 	})
+}
+
+func TestListUserTasksHandler(t *testing.T) {
+	db, cleanup := newInMemTestDatabase(t)
+	defer cleanup()
+
+	testApp := newTestApplication(t, db)
+	testMux := testApp.Mount()
+
+	// Create test user
+	userID := createTestUser(t, db, testApp, true)
+	validToken := getAuthToken(t, testApp, testMux)
+
+	// Prepare test tasks with different dates and statuses
+	yesterday := time.Now().UTC().AddDate(0, 0, -1).Format(time.RFC3339)
+	today := time.Now().UTC().Format(time.RFC3339)
+	tomorrow := time.Now().UTC().AddDate(0, 0, 1).Format(time.RFC3339)
+
+	tasks := []*store.Task{
+		{
+			UserID:           userID,
+			Title:            "Today Task 1",
+			IsOptional:       false,
+			CreatedAt:        today,
+			UpdatedAt:        today,
+			CompletionsCount: 0,
+			IsCompleted:      false,
+			Tier:             1,
+		},
+		{
+			UserID:           userID,
+			Title:            "Today Completed Task",
+			IsOptional:       true,
+			CreatedAt:        today,
+			UpdatedAt:        today,
+			CompletionsCount: 2,
+			IsCompleted:      true,
+			Tier:             2,
+		},
+		{
+			UserID:           userID,
+			Title:            "Yesterday Task",
+			IsOptional:       false,
+			CreatedAt:        yesterday,
+			UpdatedAt:        yesterday,
+			CompletionsCount: 1,
+			IsCompleted:      false,
+			Tier:             1,
+		},
+		{
+			UserID:           userID,
+			Title:            "Tomorrow Task",
+			IsOptional:       true,
+			CreatedAt:        tomorrow,
+			UpdatedAt:        tomorrow,
+			CompletionsCount: 0,
+			IsCompleted:      false,
+			Tier:             2,
+		},
+	}
+
+	// Insert test tasks
+	for _, task := range tasks {
+		if err := insertTestTask(t, db, task); err != nil {
+			t.Fatalf("Failed to insert test task: %v", err)
+		}
+	}
+
+	// Create a second user with tasks to test user isolation
+	secondUserID := int64(0)
+	err := store.WithTx(db, context.Background(), func(tx *sql.Tx) error {
+		user := &store.User{
+			Email:    "another@example.com",
+			Username: "anotheruser",
+			IsActive: true,
+		}
+		if err := user.Password.Set("testpassword"); err != nil {
+			return err
+		}
+		if err := testApp.store.Users.Create(context.Background(), tx, user); err != nil {
+			return err
+		}
+		secondUserID = user.ID
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("Failed to create second test user: %v", err)
+	}
+
+	otherUserTask := &store.Task{
+		UserID:           secondUserID,
+		Title:            "Other User Task",
+		IsOptional:       false,
+		CreatedAt:        today,
+		UpdatedAt:        today,
+		CompletionsCount: 0,
+		IsCompleted:      false,
+		Tier:             1,
+	}
+	if err := insertTestTask(t, db, otherUserTask); err != nil {
+		t.Fatalf("Failed to insert other user task: %v", err)
+	}
+
+	type testCase struct {
+		name          string
+		userIDParam   string
+		queryParams   string
+		wantStatus    int
+		wantTaskCount int
+		taskTitles    []string
+		useValidToken bool
+	}
+
+	tests := []testCase{
+		{
+			name:          "get all tasks",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   "",
+			wantStatus:    http.StatusCreated,
+			wantTaskCount: 4,
+			taskTitles:    []string{"Today Task 1", "Today Completed Task", "Yesterday Task", "Tomorrow Task"},
+			useValidToken: true,
+		},
+		{
+			name:          "filter by completed status true",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   "?completed=true",
+			wantStatus:    http.StatusCreated,
+			wantTaskCount: 1,
+			taskTitles:    []string{"Today Completed Task"},
+			useValidToken: true,
+		},
+		{
+			name:          "filter by completed status false",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   "?completed=false",
+			wantStatus:    http.StatusCreated,
+			wantTaskCount: 3,
+			taskTitles:    []string{"Today Task 1", "Yesterday Task", "Tomorrow Task"},
+			useValidToken: true,
+		},
+		{
+			name:          "filter by today's date",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   "?date=today",
+			wantStatus:    http.StatusCreated,
+			wantTaskCount: 2,
+			taskTitles:    []string{"Today Task 1", "Today Completed Task"},
+			useValidToken: true,
+		},
+		{
+			name:          "filter by yesterday's date",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   "?date=yesterday",
+			wantStatus:    http.StatusCreated,
+			wantTaskCount: 1,
+			taskTitles:    []string{"Yesterday Task"},
+			useValidToken: true,
+		},
+		{
+			name:          "filter by specific date (today)",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   fmt.Sprintf("?date=%s", time.Now().UTC().Format("2006-01-02")),
+			wantStatus:    http.StatusCreated,
+			wantTaskCount: 2,
+			taskTitles:    []string{"Today Task 1", "Today Completed Task"},
+			useValidToken: true,
+		},
+		{
+			name:          "pagination with limit",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   "?limit=2",
+			wantStatus:    http.StatusCreated,
+			wantTaskCount: 2,
+			useValidToken: true,
+		},
+		{
+			name:          "pagination with offset",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   "?offset=2",
+			wantStatus:    http.StatusCreated,
+			wantTaskCount: 2,
+			useValidToken: true,
+		},
+		{
+			name:          "combined filters",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   "?date=today&completed=false",
+			wantStatus:    http.StatusCreated,
+			wantTaskCount: 1,
+			taskTitles:    []string{"Today Task 1"},
+			useValidToken: true,
+		},
+		{
+			name:          "invalid date format",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   "?date=invalid-date",
+			wantStatus:    http.StatusBadRequest,
+			useValidToken: true,
+		},
+		{
+			name:          "invalid limit value",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   "?limit=invalid",
+			wantStatus:    http.StatusBadRequest,
+			useValidToken: true,
+		},
+		{
+			name:          "invalid offset value",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   "?offset=invalid",
+			wantStatus:    http.StatusBadRequest,
+			useValidToken: true,
+		},
+		{
+			name:          "limit out of allowed range",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   "?limit=101",
+			wantStatus:    http.StatusBadRequest,
+			useValidToken: true,
+		},
+		{
+			name:          "negative offset",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   "?offset=-1",
+			wantStatus:    http.StatusBadRequest,
+			useValidToken: true,
+		},
+		{
+			name:          "invalid completed value",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   "?completed=invalid",
+			wantStatus:    http.StatusBadRequest,
+			useValidToken: true,
+		},
+		{
+			name:          "unauthorized access",
+			userIDParam:   fmt.Sprintf("%d", userID),
+			queryParams:   "",
+			wantStatus:    http.StatusUnauthorized,
+			useValidToken: false,
+		},
+		// TODO: uncomment when I actually implement this
+		// {
+		// 	name:          "accessing other user's tasks",
+		// 	userIDParam:   fmt.Sprintf("%d", secondUserID),
+		// 	queryParams:   "",
+		// 	wantStatus:    http.StatusForbidden, // Assuming middleware blocks access to other users' tasks
+		// 	useValidToken: true,
+		// },
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			url := fmt.Sprintf("/v1/users/%s/tasks%s", tt.userIDParam, tt.queryParams)
+			req, _ := http.NewRequest("GET", url, nil)
+
+			if tt.useValidToken {
+				req.Header.Set("Authorization", "Bearer "+validToken)
+			} else {
+				req.Header.Set("Authorization", "Bearer invalidtoken")
+			}
+
+			rr := executeRequest(req, testMux)
+			checkResponseCode(t, tt.wantStatus, rr.Code)
+
+			if tt.wantStatus == http.StatusCreated {
+				var response struct {
+					Data []struct {
+						ID               int64  `json:"id"`
+						UserID           int64  `json:"user_id"`
+						Title            string `json:"title"`
+						IsOptional       bool   `json:"is_optional"`
+						CreatedAt        string `json:"created_at"`
+						UpdatedAt        string `json:"updated_at"`
+						CompletionsCount int32  `json:"completions_count"`
+						IsCompleted      bool   `json:"is_completed"`
+						Tier             int32  `json:"tier"`
+					} `json:"data"`
+				}
+
+				if err := json.NewDecoder(rr.Body).Decode(&response); err != nil {
+					t.Fatalf("Failed to decode response: %v", err)
+				}
+
+				if len(response.Data) != tt.wantTaskCount {
+					t.Errorf("Expected %d tasks, got %d", tt.wantTaskCount, len(response.Data))
+				}
+
+				// If task titles are specified, verify them
+				if tt.taskTitles != nil {
+					taskTitlesFound := make(map[string]bool)
+					for _, task := range response.Data {
+						taskTitlesFound[task.Title] = true
+
+						// Verify user ID is correct
+						if task.UserID != userID {
+							t.Errorf("Task has incorrect user ID. Expected %d, got %d", userID, task.UserID)
+						}
+
+						// Verify timestamps are in RFC3339 format
+						if _, err := time.Parse(time.RFC3339, task.CreatedAt); err != nil {
+							t.Errorf("Invalid created_at format: %v", err)
+						}
+						if _, err := time.Parse(time.RFC3339, task.UpdatedAt); err != nil {
+							t.Errorf("Invalid updated_at format: %v", err)
+						}
+					}
+
+					// Check that all expected titles are present
+					for _, title := range tt.taskTitles {
+						if !taskTitlesFound[title] {
+							t.Errorf("Expected task with title %q was not found in response", title)
+						}
+					}
+				}
+			} else if tt.wantStatus == http.StatusBadRequest {
+				var errorResponse map[string]string
+				if err := json.NewDecoder(rr.Body).Decode(&errorResponse); err == nil {
+					if _, exists := errorResponse["error"]; !exists {
+						t.Errorf("Expected error key in response")
+					}
+				}
+			}
+		})
+	}
 }

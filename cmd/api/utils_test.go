@@ -213,3 +213,49 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 		t.Errorf("Expected response code %d. Got %d", expected, actual)
 	}
 }
+
+// Helper function to insert task with custom fields
+func insertTestTask(t *testing.T, db *sql.DB, task *store.Task) error {
+	t.Helper()
+
+	createdAt := time.Now().UTC()
+	updatedAt := time.Now().UTC()
+
+	if task.CreatedAt != "" {
+		parsed, err := time.Parse(time.RFC3339, task.CreatedAt)
+		if err != nil {
+			return fmt.Errorf("invalid created_at format: %w", err)
+		}
+		createdAt = parsed
+	}
+
+	if task.UpdatedAt != "" {
+		parsed, err := time.Parse(time.RFC3339, task.UpdatedAt)
+		if err != nil {
+			return fmt.Errorf("invalid updated_at format: %w", err)
+		}
+		updatedAt = parsed
+	}
+
+	query := `
+		INSERT INTO tasks (
+			user_id, title, is_optional, created_at, updated_at, 
+			completions_count, completed, tier
+		) VALUES (
+			$1, $2, $3, $4, $5, $6, $7, $8
+		) RETURNING id
+	`
+
+	return db.QueryRowContext(
+		context.Background(),
+		query,
+		task.UserID,
+		task.Title,
+		task.IsOptional,
+		createdAt,
+		updatedAt,
+		task.CompletionsCount,
+		task.IsCompleted,
+		task.Tier,
+	).Scan(&task.ID)
+}
