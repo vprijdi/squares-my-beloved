@@ -503,6 +503,67 @@ paths:
       summary: Get user details
       tags:
       - users
+  /users/{userID}/goals:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated and filtered list of goals for the specified user
+        ID
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      - default: 100
+        description: Results limit (1-100)
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - default: 0
+        description: Pagination offset
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      - description: Filter by achievement status
+        in: query
+        name: achieved
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Goals returned successfully
+          schema:
+            items:
+              $ref: '#/definitions/store.Goal'
+            type: array
+        "400":
+          description: Invalid request parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: List goals for a specific user
+      tags:
+      - goals
   /users/{userID}/tasks:
     get:
       consumes:

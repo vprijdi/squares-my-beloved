@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"fmt"
 )
 
 type GoalStore struct {
@@ -120,25 +121,36 @@ func (s *GoalStore) Achieve(ctx context.Context, goalID int64) error {
 	return nil
 }
 
-// FIXME
 func (s *GoalStore) GetAllUserGoals(ctx context.Context, userID int64, gf *GoalFilters) ([]Goal, error) {
 	query := `
-	SELECT id, user_id, title, achieved, created_at, achieved_at
-	FROM goals
-	WHERE user_id = $1
-	  AND ($4::text IS NULL OR created_at::date = $4::date)
-	  AND ($5::boolean IS NULL OR achieved = $5)
-	ORDER BY created_at DESC
-	LIMIT $2
-	OFFSET $3;
-	`
+    SELECT id, user_id, title, achieved, created_at, achieved_at
+    FROM goals
+    WHERE user_id = $1
+      AND ($2::boolean IS NULL OR achieved = $2)
+    ORDER BY created_at DESC
+    LIMIT $3
+    OFFSET $4
+    `
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, userID, gf.Limit, gf.Offset, gf.Achieved)
+	// Convert Achieved to sql.NullBool if needed
+	var achievedFilter interface{}
+	if gf.Achieved != nil {
+		achievedFilter = *gf.Achieved
+	} else {
+		achievedFilter = nil
+	}
+
+	rows, err := s.db.QueryContext(ctx, query,
+		userID,
+		achievedFilter,
+		gf.Limit,
+		gf.Offset,
+	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("query error: %w", err)
 	}
 	defer rows.Close()
 
@@ -155,7 +167,7 @@ func (s *GoalStore) GetAllUserGoals(ctx context.Context, userID int64, gf *GoalF
 			&achievedAt,
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("scan error: %w", err)
 		}
 		if achievedAt.Valid {
 			g.AchievedAt = &achievedAt.String
@@ -163,8 +175,8 @@ func (s *GoalStore) GetAllUserGoals(ctx context.Context, userID int64, gf *GoalF
 		goals = append(goals, g)
 	}
 
-	if err = rows.Err(); err != nil {
-		return nil, err
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
 	}
 
 	return goals, nil

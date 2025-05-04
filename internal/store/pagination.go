@@ -15,9 +15,9 @@ type TaskFilters struct {
 }
 
 type GoalFilters struct {
-	Limit    int64
-	Offset   int64
-	Achieved *bool
+	Limit    int64 `json:"limit" validate:"gte=1,lte=100"`
+	Offset   int64 `json:"offset" validate:"gte=0"`
+	Achieved *bool `json:"completed"`
 }
 
 func (tf TaskFilters) Parse(r *http.Request) (TaskFilters, error) {
@@ -67,4 +67,34 @@ func (tf TaskFilters) Parse(r *http.Request) (TaskFilters, error) {
 	}
 
 	return tf, nil
+}
+
+func (gf GoalFilters) Parse(r *http.Request) (GoalFilters, error) {
+	qs := r.URL.Query()
+
+	if limit := qs.Get("limit"); limit != "" {
+		l, err := strconv.ParseInt(limit, 10, 64)
+		if err != nil || l < 1 || l > 100 {
+			return gf, fmt.Errorf("limit must be between 1-100")
+		}
+		gf.Limit = l
+	}
+
+	if offset := qs.Get("offset"); offset != "" {
+		o, err := strconv.ParseInt(offset, 10, 64)
+		if err != nil || o < 0 {
+			return gf, fmt.Errorf("offset must be positive")
+		}
+		gf.Offset = o
+	}
+
+	if achieved := qs.Get("achieved"); achieved != "" {
+		a, err := strconv.ParseBool(achieved)
+		if err != nil {
+			return gf, fmt.Errorf("invalid achieved value")
+		}
+		gf.Achieved = &a
+	}
+
+	return gf, nil
 }

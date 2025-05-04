@@ -118,7 +118,7 @@ func (app *Application) Mount() http.Handler {
 				r.Get("/", app.getUserHandler)
 
 				r.Get("/tasks", app.listUserTasksHandler)
-
+				r.Get("/goals", app.listUserGoalsHandler)
 			})
 		})
 	})
