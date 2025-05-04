@@ -1,7 +1,6 @@
 package api
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
@@ -61,9 +60,6 @@ func (app *Application) listUserTasksHandler(w http.ResponseWriter, r *http.Requ
 		app.badRequestResponse(w, r, err)
 		return
 	}
-
-	// FIXME: remove this
-	log.Println(tf)
 
 	ctx := r.Context()
 	filteredResult, err := app.store.Tasks.GetAllUserTasks(ctx, user.ID, &tf)

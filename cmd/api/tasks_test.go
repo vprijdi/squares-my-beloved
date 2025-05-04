@@ -14,6 +14,8 @@ import (
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
 )
 
+var testPassword = "testpassword"
+
 func TestCreateBatchTasksHandler(t *testing.T) {
 	db, cleanup := newInMemTestDatabase(t)
 	defer cleanup()
@@ -22,8 +24,15 @@ func TestCreateBatchTasksHandler(t *testing.T) {
 	testMux := testApp.Mount()
 
 	// Setup test environment
-	userID := createTestUser(t, db, testApp, true)
-	validToken := getAuthToken(t, testApp, testMux)
+	testUser := &store.User{
+		Email:    "testuser@example.com",
+		Username: "testuser",
+		IsActive: true,
+	}
+	testUser.Password.Set(testPassword)
+
+	userID := createTestUser(t, db, testApp, testUser)
+	validToken := getAuthToken(t, testApp, testMux, testUser.Email, testPassword)
 
 	tests := []struct {
 		name           string
@@ -132,9 +141,16 @@ func TestGetTaskHandler(t *testing.T) {
 	testApp := newTestApplication(t, db)
 	testMux := testApp.Mount()
 
-	userID := createTestUser(t, db, testApp, true)
+	testUser := &store.User{
+		Email:    "testuser@example.com",
+		Username: "testuser",
+		IsActive: true,
+	}
+	testUser.Password.Set(testPassword)
+
+	userID := createTestUser(t, db, testApp, testUser)
 	task := createTestTask(t, context.Background(), testApp, userID)
-	validToken := getAuthToken(t, testApp, testMux)
+	validToken := getAuthToken(t, testApp, testMux, testUser.Email, testPassword)
 
 	t.Run("successfully get task", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/tasks/%d", task.ID), nil)
@@ -239,10 +255,16 @@ func TestCompleteTaskHandler(t *testing.T) {
 	testApp := newTestApplication(t, db)
 	testMux := testApp.Mount()
 
-	// Create test user
-	userID := createTestUser(t, db, testApp, true)
+	testUser := &store.User{
+		Email:    "testuser@example.com",
+		Username: "testuser",
+		IsActive: true,
+	}
+	testUser.Password.Set(testPassword)
 
-	// Create test task
+	userID := createTestUser(t, db, testApp, testUser)
+	validToken := getAuthToken(t, testApp, testMux, testUser.Email, testPassword)
+
 	task := &store.Task{
 		Title:      "Test Task",
 		IsOptional: false,
@@ -252,9 +274,6 @@ func TestCompleteTaskHandler(t *testing.T) {
 	if err := testApp.store.Tasks.CreateTasks(context.Background(), []*store.Task{task}); err != nil {
 		t.Fatalf("Failed to create test task: %v", err)
 	}
-
-	// Get valid token
-	validToken := getAuthToken(t, testApp, testMux)
 
 	t.Run("successfully complete task", func(t *testing.T) {
 		req, _ := http.NewRequest("PATCH", fmt.Sprintf("/v1/tasks/%d/complete", task.ID), nil)
@@ -314,9 +333,15 @@ func TestListUserTasksHandler(t *testing.T) {
 	testApp := newTestApplication(t, db)
 	testMux := testApp.Mount()
 
-	// Create test user
-	userID := createTestUser(t, db, testApp, true)
-	validToken := getAuthToken(t, testApp, testMux)
+	testUser := &store.User{
+		Email:    "testuser@example.com",
+		Username: "testuser",
+		IsActive: true,
+	}
+	testUser.Password.Set(testPassword)
+
+	userID := createTestUser(t, db, testApp, testUser)
+	validToken := getAuthToken(t, testApp, testMux, testUser.Email, testPassword)
 
 	// Prepare test tasks with different dates and statuses
 	yesterday := time.Now().UTC().AddDate(0, 0, -1).Format(time.RFC3339)
@@ -547,12 +572,12 @@ func TestListUserTasksHandler(t *testing.T) {
 			wantStatus:    http.StatusUnauthorized,
 			useValidToken: false,
 		},
-		// TODO: uncomment when I actually implement this
+		// TODO: uncomment when actually immplemented
 		// {
 		// 	name:          "accessing other user's tasks",
 		// 	userIDParam:   fmt.Sprintf("%d", secondUserID),
 		// 	queryParams:   "",
-		// 	wantStatus:    http.StatusForbidden, // Assuming middleware blocks access to other users' tasks
+		// 	wantStatus:    http.StatusForbidden,
 		// 	useValidToken: true,
 		// },
 	}

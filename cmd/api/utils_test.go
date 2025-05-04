@@ -134,38 +134,11 @@ func newInMemTestDatabase(t *testing.T) (*sql.DB, func()) {
 	}
 }
 
-func createTestUser(t *testing.T, db *sql.DB, app *Application, isActive bool) int64 {
+// / getAuthToken now accepts email and password parameters
+func getAuthToken(t *testing.T, app *Application, mux http.Handler, email, password string) string {
 	t.Helper()
 
-	ctx := context.Background()
-	var userID int64
-
-	err := store.WithTx(db, ctx, func(tx *sql.Tx) error {
-		user := &store.User{
-			Email:    "testuser@example.com",
-			Username: "testuser",
-			IsActive: isActive,
-		}
-		if err := user.Password.Set("testpassword"); err != nil {
-			return err
-		}
-		if err := app.store.Users.Create(ctx, tx, user); err != nil {
-			return err
-		}
-		userID = user.ID
-		return nil
-	})
-
-	if err != nil {
-		t.Fatalf("Failed to create test user: %v", err)
-	}
-	return userID
-}
-
-func getAuthToken(t *testing.T, app *Application, mux http.Handler) string {
-	t.Helper()
-
-	loginBody := fmt.Sprintf(`{"email":"testuser@example.com","password":"testpassword"}`)
+	loginBody := fmt.Sprintf(`{"email":"%s","password":"%s"}`, email, password)
 	req, _ := http.NewRequest("POST", "/v1/auth/token", strings.NewReader(loginBody))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -182,6 +155,27 @@ func getAuthToken(t *testing.T, app *Application, mux http.Handler) string {
 		t.Fatalf("Failed to decode token: %v", err)
 	}
 	return tokenResp.Data
+}
+
+// createTestUser now accepts a *store.User parameter
+func createTestUser(t *testing.T, db *sql.DB, app *Application, user *store.User) int64 {
+	t.Helper()
+
+	ctx := context.Background()
+	var userID int64
+
+	err := store.WithTx(db, ctx, func(tx *sql.Tx) error {
+		if err := app.store.Users.Create(ctx, tx, user); err != nil {
+			return err
+		}
+		userID = user.ID
+		return nil
+	})
+
+	if err != nil {
+		t.Fatalf("Failed to create test user: %v", err)
+	}
+	return userID
 }
 
 func createTestTask(t *testing.T, ctx context.Context, app *Application, userID int64) *store.Task {
