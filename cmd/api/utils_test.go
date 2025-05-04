@@ -134,7 +134,7 @@ func newInMemTestDatabase(t *testing.T) (*sql.DB, func()) {
 	}
 }
 
-func createTestUser(t *testing.T, db *sql.DB, app *Application) int64 {
+func createTestUser(t *testing.T, db *sql.DB, app *Application, isActive bool) int64 {
 	t.Helper()
 
 	ctx := context.Background()
@@ -144,7 +144,7 @@ func createTestUser(t *testing.T, db *sql.DB, app *Application) int64 {
 		user := &store.User{
 			Email:    "testuser@example.com",
 			Username: "testuser",
-			IsActive: true,
+			IsActive: isActive,
 		}
 		if err := user.Password.Set("testpassword"); err != nil {
 			return err
@@ -201,6 +201,12 @@ func createTestTask(t *testing.T, ctx context.Context, app *Application, userID 
 	return task
 }
 
+func cleanUserTable(t *testing.T, db *sql.DB) {
+	_, err := db.Exec("DELETE FROM users")
+	if err != nil {
+		t.Fatalf("Failed to clean users table: %v", err)
+	}
+}
 func checkResponseCode(t *testing.T, expected, actual int) {
 	t.Helper()
 	if expected != actual {

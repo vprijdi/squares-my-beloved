@@ -21,7 +21,7 @@ func TestCreateBatchTasksHandler(t *testing.T) {
 	testMux := testApp.Mount()
 
 	// Setup test environment
-	userID := createTestUser(t, db, testApp)
+	userID := createTestUser(t, db, testApp, true)
 	validToken := getAuthToken(t, testApp, testMux)
 
 	tests := []struct {
@@ -131,7 +131,7 @@ func TestGetTaskHandler(t *testing.T) {
 	testApp := newTestApplication(t, db)
 	testMux := testApp.Mount()
 
-	userID := createTestUser(t, db, testApp)
+	userID := createTestUser(t, db, testApp, true)
 	task := createTestTask(t, context.Background(), testApp, userID)
 	validToken := getAuthToken(t, testApp, testMux)
 
@@ -239,7 +239,7 @@ func TestCompleteTaskHandler(t *testing.T) {
 	testMux := testApp.Mount()
 
 	// Create test user
-	userID := createTestUser(t, db, testApp)
+	userID := createTestUser(t, db, testApp, true)
 
 	// Create test task
 	task := &store.Task{
