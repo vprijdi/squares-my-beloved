@@ -26,12 +26,19 @@ type Storage struct {
 		Complete(ctx context.Context, taskID int64) error
 		GetAllUserTasks(ctx context.Context, userID int64, tf *TaskFilters) ([]Task, error)
 	}
+	Goals interface {
+		CreateGoals(context.Context, []*Goal) error
+		GetByID(ctx context.Context, goalID int64) (*Goal, error)
+		Achieve(ctx context.Context, goalID int64) error
+		GetAllUserGoals(ctx context.Context, userID int64, tf *GoalFilters) ([]Goal, error)
+	}
 }
 
 func NewStorage(db *sql.DB) Storage {
 	return Storage{
 		Users: &UserStore{db},
 		Tasks: &TaskStore{db},
+		Goals: &GoalStore{db},
 	}
 }
 

@@ -14,6 +14,12 @@ type TaskFilters struct {
 	Completed *bool   `json:"completed"`
 }
 
+type GoalFilters struct {
+	Limit    int64
+	Offset   int64
+	Achieved *bool
+}
+
 func (tf TaskFilters) Parse(r *http.Request) (TaskFilters, error) {
 	qs := r.URL.Query()
 
