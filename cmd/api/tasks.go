@@ -84,7 +84,7 @@ func (app *Application) createBatchTasksHandler(w http.ResponseWriter, r *http.R
 func (app *Application) getTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task := getTaskFromCtx(r)
 
-	if err := app.jsonResponse(w, http.StatusCreated, task); err != nil {
+	if err := app.jsonResponse(w, http.StatusOK, task); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}

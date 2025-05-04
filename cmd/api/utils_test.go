@@ -136,3 +136,23 @@ func newInMemTestDatabase(t *testing.T) (*sql.DB, func()) {
 		postgres.Stop()
 	}
 }
+
+// func getValidToken(t *testing.T, email, password string, mux http.Handler) (string, error) {
+// 	// Get valid token through login endpoint
+// 	loginBody := fmt.Sprintf(`{"email": %s,"password":"testpassword"}`, email)
+// 	req, _ := http.NewRequest("POST", "/v1/auth/token", strings.NewReader(loginBody))
+// 	req.Header.Set("Content-Type", "application/json")
+
+// 	rr := httptest.NewRecorder()
+// 	mux.ServeHTTP(rr, req)
+// 	checkResponseCode(t, http.StatusCreated, rr.Code)
+
+// 	var tokenResp struct {
+// 		Data string `json:"data"`
+// 	}
+// 	if err := json.NewDecoder(rr.Body).Decode(&tokenResp); err != nil {
+// 		t.Fatalf("Failed to decode token: %v", err)
+// 	}
+// 	validToken := tokenResp.Data
+// 	return validToken, nil
+// }
