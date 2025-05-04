@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -21,48 +20,10 @@ func TestCreateBatchTasksHandler(t *testing.T) {
 	testApp := newTestApplication(t, db)
 	testMux := testApp.Mount()
 
-	// Create test user
-	ctx := context.Background()
-	var userID int64
-	err := store.WithTx(db, ctx, func(tx *sql.Tx) error {
-		user := &store.User{
-			Email:    "testuser@example.com",
-			Username: "testuser",
-			IsActive: true,
-		}
-		if err := user.Password.Set("testpassword"); err != nil {
-			return err
-		}
-		if err := testApp.store.Users.Create(ctx, tx, user); err != nil {
-			return err
-		}
-		userID = user.ID
-		return nil
-	})
-	if err != nil {
-		t.Fatalf("Failed to create test user: %v", err)
-	}
+	// Setup test environment
+	userID := createTestUser(t, db, testApp)
+	validToken := getAuthToken(t, testApp, testMux)
 
-	// Get valid token through login endpoint
-	loginBody := fmt.Sprintf(`{"email":"testuser@example.com","password":"testpassword"}`)
-	req, _ := http.NewRequest("POST", "/v1/auth/token", strings.NewReader(loginBody))
-	req.Header.Set("Content-Type", "application/json")
-
-	rr := httptest.NewRecorder()
-	testMux.ServeHTTP(rr, req)
-	if rr.Code != http.StatusCreated {
-		t.Fatalf("Login failed: %d - %s", rr.Code, rr.Body.String())
-	}
-
-	var tokenResp struct {
-		Data string `json:"data"`
-	}
-	if err := json.NewDecoder(rr.Body).Decode(&tokenResp); err != nil {
-		t.Fatalf("Failed to decode token: %v", err)
-	}
-	validToken := tokenResp.Data
-
-	// Test cases
 	tests := []struct {
 		name           string
 		payload        string
@@ -109,7 +70,6 @@ func TestCreateBatchTasksHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Clear tasks before each test case
 			_, err := db.Exec("DELETE FROM tasks")
 			if err != nil {
 				t.Fatalf("Failed to clear tasks: %v", err)
@@ -122,16 +82,11 @@ func TestCreateBatchTasksHandler(t *testing.T) {
 			rr := httptest.NewRecorder()
 			testMux.ServeHTTP(rr, req)
 
-			if rr.Code != tt.wantStatus {
-				t.Errorf("Expected status %d, got %d: %s", tt.wantStatus, rr.Code, rr.Body.String())
-			}
+			checkResponseCode(t, tt.wantStatus, rr.Code)
 
-			// Verify successful response
 			if tt.wantStatus == http.StatusCreated {
-
-				// Verify tasks were created in database
 				var dbCount int
-				err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM tasks WHERE user_id = $1", userID).Scan(&dbCount)
+				err := db.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM tasks WHERE user_id = $1", userID).Scan(&dbCount)
 				if err != nil {
 					t.Fatalf("Failed to count tasks: %v", err)
 				}
@@ -140,7 +95,6 @@ func TestCreateBatchTasksHandler(t *testing.T) {
 				}
 			}
 
-			// Verify error response
 			if tt.wantStatus == http.StatusBadRequest {
 				var response map[string]interface{}
 				if err := json.NewDecoder(rr.Body).Decode(&response); err != nil {
@@ -157,7 +111,6 @@ func TestCreateBatchTasksHandler(t *testing.T) {
 		})
 	}
 
-	// Test unauthorized access
 	t.Run("unauthorized access", func(t *testing.T) {
 		payload := `[{"title": "Task", "is_optional": false, "tier": 1}]`
 		req, _ := http.NewRequest("POST", "/v1/tasks", strings.NewReader(payload))
@@ -167,9 +120,7 @@ func TestCreateBatchTasksHandler(t *testing.T) {
 		rr := httptest.NewRecorder()
 		testMux.ServeHTTP(rr, req)
 
-		if rr.Code != http.StatusUnauthorized {
-			t.Errorf("Expected status 401, got %d", rr.Code)
-		}
+		checkResponseCode(t, http.StatusUnauthorized, rr.Code)
 	})
 }
 
@@ -180,55 +131,9 @@ func TestGetTaskHandler(t *testing.T) {
 	testApp := newTestApplication(t, db)
 	testMux := testApp.Mount()
 
-	// Create test user
-	ctx := context.Background()
-	var userID int64
-	err := store.WithTx(db, ctx, func(tx *sql.Tx) error {
-		user := &store.User{
-			Email:    "testuser@example.com",
-			Username: "testuser",
-			IsActive: true,
-		}
-		if err := user.Password.Set("testpassword"); err != nil {
-			return err
-		}
-		if err := testApp.store.Users.Create(ctx, tx, user); err != nil {
-			return err
-		}
-		userID = user.ID
-		return nil
-	})
-	if err != nil {
-		t.Fatalf("Failed to create test user: %v", err)
-	}
-
-	// Create test task
-	task := &store.Task{
-		Title:      "Test Task",
-		IsOptional: false,
-		Tier:       1,
-		UserID:     userID,
-	}
-	if err := testApp.store.Tasks.CreateTasks(ctx, []*store.Task{task}); err != nil {
-		t.Fatalf("Failed to create test task: %v", err)
-	}
-
-	// Get valid token through login endpoint
-	loginBody := fmt.Sprintf(`{"email":"testuser@example.com","password":"testpassword"}`)
-	req, _ := http.NewRequest("POST", "/v1/auth/token", strings.NewReader(loginBody))
-	req.Header.Set("Content-Type", "application/json")
-
-	rr := httptest.NewRecorder()
-	testMux.ServeHTTP(rr, req)
-	checkResponseCode(t, http.StatusCreated, rr.Code)
-
-	var tokenResp struct {
-		Data string `json:"data"`
-	}
-	if err := json.NewDecoder(rr.Body).Decode(&tokenResp); err != nil {
-		t.Fatalf("Failed to decode token: %v", err)
-	}
-	validToken := tokenResp.Data
+	userID := createTestUser(t, db, testApp)
+	task := createTestTask(t, context.Background(), testApp, userID)
+	validToken := getAuthToken(t, testApp, testMux)
 
 	t.Run("successfully get task", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", fmt.Sprintf("/v1/tasks/%d", task.ID), nil)
@@ -257,6 +162,7 @@ func TestGetTaskHandler(t *testing.T) {
 			t.Fatalf("Failed to decode response: %v", err)
 		}
 
+		// Verify response fields
 		if response.Data.ID != task.ID {
 			t.Errorf("Expected task ID %d, got %d", task.ID, response.Data.ID)
 		}
@@ -285,11 +191,10 @@ func TestGetTaskHandler(t *testing.T) {
 			t.Error("Expected is_completed to be false for new task")
 		}
 
-		// Verify createdAt is valid RFC3339 format
+		// Verify timestamp formats
 		if _, err := time.Parse(time.RFC3339, response.Data.CreatedAt); err != nil {
 			t.Errorf("Invalid created_at format: %v", err)
 		}
-		// Verify updatedAt is valid RFC3339 format
 		if _, err := time.Parse(time.RFC3339, response.Data.UpdatedAt); err != nil {
 			t.Errorf("Invalid updated_at format: %v", err)
 		}
@@ -302,17 +207,7 @@ func TestGetTaskHandler(t *testing.T) {
 		rr := httptest.NewRecorder()
 		testMux.ServeHTTP(rr, req)
 
-		if rr.Code != http.StatusNotFound {
-			t.Errorf("Expected status 404, got %d", rr.Code)
-		}
-
-		var response map[string]string
-		if err := json.NewDecoder(rr.Body).Decode(&response); err != nil {
-			t.Fatal(err)
-		}
-		if response["error"] == "" {
-			t.Error("Expected error message in response")
-		}
+		checkResponseCode(t, http.StatusNotFound, rr.Code)
 	})
 
 	t.Run("invalid task ID format returns 500", func(t *testing.T) {
@@ -322,9 +217,7 @@ func TestGetTaskHandler(t *testing.T) {
 		rr := httptest.NewRecorder()
 		testMux.ServeHTTP(rr, req)
 
-		if rr.Code != http.StatusInternalServerError {
-			t.Errorf("Expected status 400, got %d", rr.Code)
-		}
+		checkResponseCode(t, http.StatusInternalServerError, rr.Code)
 	})
 
 	t.Run("unauthorized access returns 401", func(t *testing.T) {
@@ -334,8 +227,81 @@ func TestGetTaskHandler(t *testing.T) {
 		rr := httptest.NewRecorder()
 		testMux.ServeHTTP(rr, req)
 
-		if rr.Code != http.StatusUnauthorized {
-			t.Errorf("Expected status 401, got %d", rr.Code)
+		checkResponseCode(t, http.StatusUnauthorized, rr.Code)
+	})
+}
+
+func TestCompleteTaskHandler(t *testing.T) {
+	db, cleanup := newInMemTestDatabase(t)
+	defer cleanup()
+
+	testApp := newTestApplication(t, db)
+	testMux := testApp.Mount()
+
+	// Create test user
+	userID := createTestUser(t, db, testApp)
+
+	// Create test task
+	task := &store.Task{
+		Title:      "Test Task",
+		IsOptional: false,
+		Tier:       1,
+		UserID:     userID,
+	}
+	if err := testApp.store.Tasks.CreateTasks(context.Background(), []*store.Task{task}); err != nil {
+		t.Fatalf("Failed to create test task: %v", err)
+	}
+
+	// Get valid token
+	validToken := getAuthToken(t, testApp, testMux)
+
+	t.Run("successfully complete task", func(t *testing.T) {
+		req, _ := http.NewRequest("PATCH", fmt.Sprintf("/v1/tasks/%d/complete", task.ID), nil)
+		req.Header.Set("Authorization", "Bearer "+validToken)
+
+		rr := httptest.NewRecorder()
+		testMux.ServeHTTP(rr, req)
+
+		checkResponseCode(t, http.StatusNoContent, rr.Code)
+
+		var completed bool
+		err := db.QueryRowContext(context.Background(),
+			"SELECT completed FROM tasks WHERE id = $1", task.ID).Scan(&completed)
+		if err != nil {
+			t.Fatalf("Failed to query task: %v", err)
 		}
+		if !completed {
+			t.Error("Expected task to be marked as completed")
+		}
+	})
+
+	t.Run("nonexistent task returns 404", func(t *testing.T) {
+		req, _ := http.NewRequest("PATCH", "/v1/tasks/999999/complete", nil)
+		req.Header.Set("Authorization", "Bearer "+validToken)
+
+		rr := httptest.NewRecorder()
+		testMux.ServeHTTP(rr, req)
+
+		checkResponseCode(t, http.StatusNotFound, rr.Code)
+	})
+
+	t.Run("unauthorized access returns 401", func(t *testing.T) {
+		req, _ := http.NewRequest("PATCH", fmt.Sprintf("/v1/tasks/%d/complete", task.ID), nil)
+		req.Header.Set("Authorization", "Bearer invalidtoken")
+
+		rr := httptest.NewRecorder()
+		testMux.ServeHTTP(rr, req)
+
+		checkResponseCode(t, http.StatusUnauthorized, rr.Code)
+	})
+
+	t.Run("invalid task ID format returns 500", func(t *testing.T) {
+		req, _ := http.NewRequest("PATCH", "/v1/tasks/not-a-number/complete", nil)
+		req.Header.Set("Authorization", "Bearer "+validToken)
+
+		rr := httptest.NewRecorder()
+		testMux.ServeHTTP(rr, req)
+
+		checkResponseCode(t, http.StatusInternalServerError, rr.Code)
 	})
 }

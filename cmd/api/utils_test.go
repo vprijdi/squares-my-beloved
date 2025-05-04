@@ -1,10 +1,13 @@
 package api
 
 import (
+	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -101,12 +104,6 @@ func executeRequest(req *http.Request, mux http.Handler) *httptest.ResponseRecor
 	return rr
 }
 
-func checkResponseCode(t *testing.T, expected, actual int) {
-	if expected != actual {
-		t.Errorf("Expected response code %d. Got %d", expected, actual)
-	}
-}
-
 func newInMemTestDatabase(t *testing.T) (*sql.DB, func()) {
 	t.Helper()
 
@@ -137,22 +134,76 @@ func newInMemTestDatabase(t *testing.T) (*sql.DB, func()) {
 	}
 }
 
-// func getValidToken(t *testing.T, email, password string, mux http.Handler) (string, error) {
-// 	// Get valid token through login endpoint
-// 	loginBody := fmt.Sprintf(`{"email": %s,"password":"testpassword"}`, email)
-// 	req, _ := http.NewRequest("POST", "/v1/auth/token", strings.NewReader(loginBody))
-// 	req.Header.Set("Content-Type", "application/json")
+func createTestUser(t *testing.T, db *sql.DB, app *Application) int64 {
+	t.Helper()
 
-// 	rr := httptest.NewRecorder()
-// 	mux.ServeHTTP(rr, req)
-// 	checkResponseCode(t, http.StatusCreated, rr.Code)
+	ctx := context.Background()
+	var userID int64
 
-// 	var tokenResp struct {
-// 		Data string `json:"data"`
-// 	}
-// 	if err := json.NewDecoder(rr.Body).Decode(&tokenResp); err != nil {
-// 		t.Fatalf("Failed to decode token: %v", err)
-// 	}
-// 	validToken := tokenResp.Data
-// 	return validToken, nil
-// }
+	err := store.WithTx(db, ctx, func(tx *sql.Tx) error {
+		user := &store.User{
+			Email:    "testuser@example.com",
+			Username: "testuser",
+			IsActive: true,
+		}
+		if err := user.Password.Set("testpassword"); err != nil {
+			return err
+		}
+		if err := app.store.Users.Create(ctx, tx, user); err != nil {
+			return err
+		}
+		userID = user.ID
+		return nil
+	})
+
+	if err != nil {
+		t.Fatalf("Failed to create test user: %v", err)
+	}
+	return userID
+}
+
+func getAuthToken(t *testing.T, app *Application, mux http.Handler) string {
+	t.Helper()
+
+	loginBody := fmt.Sprintf(`{"email":"testuser@example.com","password":"testpassword"}`)
+	req, _ := http.NewRequest("POST", "/v1/auth/token", strings.NewReader(loginBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+	if rr.Code != http.StatusCreated {
+		t.Fatalf("Login failed: %d - %s", rr.Code, rr.Body.String())
+	}
+
+	var tokenResp struct {
+		Data string `json:"data"`
+	}
+	if err := json.NewDecoder(rr.Body).Decode(&tokenResp); err != nil {
+		t.Fatalf("Failed to decode token: %v", err)
+	}
+	return tokenResp.Data
+}
+
+func createTestTask(t *testing.T, ctx context.Context, app *Application, userID int64) *store.Task {
+	t.Helper()
+
+	task := &store.Task{
+		Title:      "Test Task",
+		IsOptional: false,
+		Tier:       1,
+		UserID:     userID,
+	}
+
+	if err := app.store.Tasks.CreateTasks(ctx, []*store.Task{task}); err != nil {
+		t.Fatalf("Failed to create test task: %v", err)
+	}
+
+	return task
+}
+
+func checkResponseCode(t *testing.T, expected, actual int) {
+	t.Helper()
+	if expected != actual {
+		t.Errorf("Expected response code %d. Got %d", expected, actual)
+	}
+}

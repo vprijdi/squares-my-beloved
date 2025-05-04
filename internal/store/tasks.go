@@ -95,7 +95,8 @@ func (s *TaskStore) Complete(ctx context.Context, taskID int64) error {
         UPDATE tasks 
         SET 
             completions_count = completions_count + 1,
-            updated_at = NOW()
+            updated_at = NOW(),
+			completed = TRUE
         WHERE id = $1
     `
 
