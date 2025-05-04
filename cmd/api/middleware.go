@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -12,11 +13,13 @@ import (
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
 )
 
-type taskKey string
-type userKey string
+type contextKey string
 
-const taskCtx taskKey = "task"
-const userCtx userKey = "user"
+const (
+	taskCtxKey contextKey = "task"
+	userCtxKey contextKey = "user"
+	goalCtxKey contextKey = "goal"
+)
 
 func (app *Application) tasksContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +42,7 @@ func (app *Application) tasksContextMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx = context.WithValue(ctx, taskCtx, task)
+		ctx = context.WithValue(ctx, taskCtxKey, task)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -65,7 +68,7 @@ func (app *Application) userContextMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx = context.WithValue(ctx, userCtx, user)
+		ctx = context.WithValue(ctx, userCtxKey, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -111,17 +114,51 @@ func (app *Application) authTokenMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx = context.WithValue(ctx, userCtx, user)
+		ctx = context.WithValue(ctx, userCtxKey, user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (app *Application) goalsContextMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		goalID, err := strconv.ParseInt(chi.URLParam(r, "goalID"), 10, 64)
+		if err != nil {
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
+		goal, err := app.store.Goals.GetByID(r.Context(), goalID)
+		if err != nil {
+			switch {
+			case errors.Is(err, store.ErrNotFound):
+				app.notFoundResponse(w, r, err)
+			default:
+				app.internalServerError(w, r, err)
+			}
+			return
+		}
+
+		user := getUserFromCtx(r)
+		if goal.UserID != user.ID {
+			app.notFoundResponse(w, r, err)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), goalCtxKey, goal)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func getUserFromCtx(r *http.Request) *store.User {
-	user, _ := r.Context().Value(userCtx).(*store.User)
+	user, _ := r.Context().Value(userCtxKey).(*store.User)
 	return user
 }
 
 func getTaskFromCtx(r *http.Request) *store.Task {
-	task, _ := r.Context().Value(taskCtx).(*store.Task)
+	task, _ := r.Context().Value(taskCtxKey).(*store.Task)
 	return task
+}
+
+func getGoalFromCtx(r *http.Request) *store.Goal {
+	return r.Context().Value(goalCtxKey).(*store.Goal)
 }

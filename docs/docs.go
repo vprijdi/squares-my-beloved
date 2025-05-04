@@ -94,7 +94,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.RegisterUserPayload"
+                            "$ref": "#/definitions/api.RegisterUserPayload"
                         }
                     }
                 ],
@@ -102,7 +102,7 @@ const docTemplate = `{
                     "201": {
                         "description": "User created with activation token",
                         "schema": {
-                            "$ref": "#/definitions/main.UserWithToken"
+                            "$ref": "#/definitions/api.UserWithToken"
                         }
                     },
                     "400": {
@@ -146,12 +146,12 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.CreateUserTokenPayload"
+                            "$ref": "#/definitions/api.CreateUserTokenPayload"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "description": "Token",
                         "schema": {
                             "type": "string"
@@ -168,6 +168,174 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {}
+                    }
+                }
+            }
+        },
+        "/goals": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create several goals with a single request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "goals"
+                ],
+                "summary": "Create multiple goals in a batch",
+                "parameters": [
+                    {
+                        "description": "List of goals to create",
+                        "name": "goals",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api.createGoalPayload"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created goals with count",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/goals/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get goal by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "goals"
+                ],
+                "summary": "Get a specific goal",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Goal ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The requested goal",
+                        "schema": {
+                            "$ref": "#/definitions/store.Goal"
+                        }
+                    },
+                    "404": {
+                        "description": "Goal not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/goals/{id}/achieve": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Mark a goal as achieved",
+                "tags": [
+                    "goals"
+                ],
+                "summary": "Mark goal as achieved",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Goal ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "404": {
+                        "description": "Goal not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }
@@ -234,7 +402,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/main.createTaskPayload"
+                                "$ref": "#/definitions/api.createTaskPayload"
                             }
                         }
                     }
@@ -249,6 +417,15 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -484,7 +661,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "main.CreateUserTokenPayload": {
+        "api.CreateUserTokenPayload": {
             "type": "object",
             "required": [
                 "email",
@@ -502,7 +679,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.RegisterUserPayload": {
+        "api.RegisterUserPayload": {
             "type": "object",
             "required": [
                 "email",
@@ -525,7 +702,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.UserWithToken": {
+        "api.UserWithToken": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -551,7 +728,20 @@ const docTemplate = `{
                 }
             }
         },
-        "main.createTaskPayload": {
+        "api.createGoalPayload": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
+                }
+            }
+        },
+        "api.createTaskPayload": {
             "type": "object",
             "required": [
                 "title"
@@ -572,6 +762,29 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 160,
                     "minLength": 1
+                }
+            }
+        },
+        "store.Goal": {
+            "type": "object",
+            "properties": {
+                "achieved": {
+                    "type": "boolean"
+                },
+                "achieved_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },

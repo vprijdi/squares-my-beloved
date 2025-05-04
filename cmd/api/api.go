@@ -100,6 +100,18 @@ func (app *Application) Mount() http.Handler {
 			})
 		})
 
+		r.Route("/goals", func(r chi.Router) {
+			r.Use(app.authTokenMiddleware)
+			r.Post("/", app.createBatchGoalsHandler)
+
+			r.Route("/{goalID}", func(r chi.Router) {
+				r.Use(app.goalsContextMiddleware)
+
+				r.Get("/", app.getGoalHandler)
+				r.Patch("/achieve", app.achieveGoalHandler)
+			})
+		})
+
 		r.Route("/users", func(r chi.Router) {
 			r.Route("/{userID}", func(r chi.Router) {
 				r.Use(app.authTokenMiddleware)

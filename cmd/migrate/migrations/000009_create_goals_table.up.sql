@@ -4,7 +4,7 @@ CREATE TABLE goals (
   title VARCHAR(255) NOT NULL,
   achieved BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  achieved_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  achieved_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
 
 CREATE INDEX idx_goals_user_id ON goals(user_id);

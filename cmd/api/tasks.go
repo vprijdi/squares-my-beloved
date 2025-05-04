@@ -23,6 +23,7 @@ type createTaskPayload struct {
 //	@Param			tasks	body		[]createTaskPayload		true	"List of tasks to create"
 //	@Success		201		{object}	map[string]interface{}	"Created tasks with count"
 //	@Failure		400		{object}	map[string]string		"Invalid request"
+//	@Failure		401		{object}	map[string]string		"Unauthorized"
 //	@Failure		500		{object}	map[string]string		"Internal server error"
 //	@Security		ApiKeyAuth
 //	@Router			/tasks [post]

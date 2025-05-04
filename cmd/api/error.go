@@ -7,6 +7,7 @@ import (
 
 var (
 	ErrEmptyTaskList = errors.New("at least one task is required")
+	ErrEmptyGoalList = errors.New("at leat one goal is required")
 )
 
 func (app *Application) internalServerError(w http.ResponseWriter, r *http.Request, err error) {

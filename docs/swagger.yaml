@@ -1,6 +1,6 @@
 basePath: /v1
 definitions:
-  main.CreateUserTokenPayload:
+  api.CreateUserTokenPayload:
     properties:
       email:
         maxLength: 255
@@ -13,7 +13,7 @@ definitions:
     - email
     - password
     type: object
-  main.RegisterUserPayload:
+  api.RegisterUserPayload:
     properties:
       email:
         maxLength: 255
@@ -30,7 +30,7 @@ definitions:
     - password
     - username
     type: object
-  main.UserWithToken:
+  api.UserWithToken:
     properties:
       created_at:
         type: string
@@ -47,7 +47,16 @@ definitions:
       username:
         type: string
     type: object
-  main.createTaskPayload:
+  api.createGoalPayload:
+    properties:
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+    required:
+    - title
+    type: object
+  api.createTaskPayload:
     properties:
       is_optional:
         type: boolean
@@ -63,6 +72,21 @@ definitions:
         type: string
     required:
     - title
+    type: object
+  store.Goal:
+    properties:
+      achieved:
+        type: boolean
+      achieved_at:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      user_id:
+        type: integer
     type: object
   store.Task:
     properties:
@@ -156,14 +180,14 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/main.RegisterUserPayload'
+          $ref: '#/definitions/api.RegisterUserPayload'
       produces:
       - application/json
       responses:
         "201":
           description: User created with activation token
           schema:
-            $ref: '#/definitions/main.UserWithToken'
+            $ref: '#/definitions/api.UserWithToken'
         "400":
           description: Invalid request/duplicate email or username
           schema:
@@ -190,11 +214,11 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/main.CreateUserTokenPayload'
+          $ref: '#/definitions/api.CreateUserTokenPayload'
       produces:
       - application/json
       responses:
-        "200":
+        "201":
           description: Token
           schema:
             type: string
@@ -210,6 +234,113 @@ paths:
       summary: Create authentication token
       tags:
       - auth
+  /goals:
+    post:
+      consumes:
+      - application/json
+      description: Create several goals with a single request
+      parameters:
+      - description: List of goals to create
+        in: body
+        name: goals
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/api.createGoalPayload'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created goals with count
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create multiple goals in a batch
+      tags:
+      - goals
+  /goals/{id}:
+    get:
+      description: Get goal by ID
+      parameters:
+      - description: Goal ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: The requested goal
+          schema:
+            $ref: '#/definitions/store.Goal'
+        "404":
+          description: Goal not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get a specific goal
+      tags:
+      - goals
+  /goals/{id}/achieve:
+    patch:
+      description: Mark a goal as achieved
+      parameters:
+      - description: Goal ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No content
+        "404":
+          description: Goal not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Mark goal as achieved
+      tags:
+      - goals
   /health:
     get:
       consumes:
@@ -246,7 +377,7 @@ paths:
         required: true
         schema:
           items:
-            $ref: '#/definitions/main.createTaskPayload'
+            $ref: '#/definitions/api.createTaskPayload'
           type: array
       produces:
       - application/json
@@ -258,6 +389,12 @@ paths:
             type: object
         "400":
           description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
           schema:
             additionalProperties:
               type: string
