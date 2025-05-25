@@ -16,10 +16,9 @@ import (
 type contextKey string
 
 const (
-	taskCtxKey  contextKey = "task"
-	userCtxKey  contextKey = "user"
-	goalCtxKey  contextKey = "goal"
-	statsCtxKey contextKey = "stats"
+	taskCtxKey contextKey = "task"
+	userCtxKey contextKey = "user"
+	goalCtxKey contextKey = "goal"
 )
 
 func (app *Application) taskContextMiddleware(next http.Handler) http.Handler {

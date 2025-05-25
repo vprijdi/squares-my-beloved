@@ -1,0 +1,5 @@
+**/*.go
+../api/
+../cmd/
+../internal/
+../scripts/
