@@ -181,23 +181,22 @@ func (s *UserStore) createUserInvitation(ctx context.Context, tx *sql.Tx, token 
 	return nil
 }
 
-func (s *UserStore) Activate(ctx context.Context, token string) error {
-	return WithTx(s.db, ctx, func(tx *sql.Tx) error {
-		user, err := s.getUserFromInvitation(ctx, tx, token)
-		if err != nil {
-			return err
-		}
+func (s *UserStore) Activate(ctx context.Context, tx *sql.Tx, token string) (int64, error) {
+	user, err := s.getUserFromInvitation(ctx, tx, token)
+	if err != nil {
+		return 0, err
+	}
 
-		user.IsActive = true
-		if err := s.update(ctx, tx, user); err != nil {
-			return err
-		}
+	user.IsActive = true
+	if err := s.update(ctx, tx, user); err != nil {
+		return 0, err
+	}
 
-		if err := s.deleteUserInvitations(ctx, tx, user.ID); err != nil {
-			return err
-		}
-		return nil
-	})
+	if err := s.deleteUserInvitations(ctx, tx, user.ID); err != nil {
+		return 0, err
+	}
+
+	return user.ID, nil
 }
 
 func (s *UserStore) getUserFromInvitation(ctx context.Context, tx *sql.Tx, token string) (*User, error) {

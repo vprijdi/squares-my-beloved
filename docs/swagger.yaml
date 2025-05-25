@@ -235,6 +235,61 @@ paths:
       tags:
       - auth
   /goals:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated and filtered list of goals for the specified user
+        ID
+      parameters:
+      - default: 100
+        description: Results limit (1-100)
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - default: 0
+        description: Pagination offset
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      - description: Filter by achievement status
+        in: query
+        name: achieved
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Goals returned successfully
+          schema:
+            items:
+              $ref: '#/definitions/store.Goal'
+            type: array
+        "400":
+          description: Invalid request parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: List goals for a specific user
+      tags:
+      - goals
     post:
       consumes:
       - application/json
@@ -365,7 +420,97 @@ paths:
       summary: Health check endpoint
       tags:
       - health
+  /stats:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve various statistics for the authenticated user. Categories
+        must be comma-separated if providing multiple values.
+      parameters:
+      - default: all_time,tasks,time,averages,streaks
+        description: Comma-separated categories (all_time,tasks,time,averages,streaks)
+        in: query
+        name: categories
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Statistics returned successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: 'Bad request: bad category value or malformed input'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'Unauthorized: missing or invalid authentication'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'Not Found: user statistics not available'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get user statistics
+      tags:
+      - statistics
   /tasks:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated and filtered list of tasks for the specified user
+        ID
+      parameters:
+      - default: 100
+        description: Results limit (1-100)
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - default: 0
+        description: Pagination offset
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      - description: Date filter (today/yesterday/YYYY-MM-DD)
+        in: query
+        name: date
+        type: string
+      - description: Filter by completion status
+        in: query
+        name: completed
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Tasks returned successfully
+        "400":
+          description: Invalid request parameters
+        "500":
+          description: Server error
+      security:
+      - ApiKeyAuth: []
+      summary: List tasks for a specific user
+      tags:
+      - tasks
     post:
       consumes:
       - application/json
@@ -503,114 +648,6 @@ paths:
       summary: Get user details
       tags:
       - users
-  /users/{userID}/goals:
-    get:
-      consumes:
-      - application/json
-      description: Get paginated and filtered list of goals for the specified user
-        ID
-      parameters:
-      - description: User ID
-        in: path
-        name: userID
-        required: true
-        type: string
-      - default: 100
-        description: Results limit (1-100)
-        in: query
-        maximum: 100
-        minimum: 1
-        name: limit
-        type: integer
-      - default: 0
-        description: Pagination offset
-        in: query
-        minimum: 0
-        name: offset
-        type: integer
-      - description: Filter by achievement status
-        in: query
-        name: achieved
-        type: boolean
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Goals returned successfully
-          schema:
-            items:
-              $ref: '#/definitions/store.Goal'
-            type: array
-        "400":
-          description: Invalid request parameters
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: List goals for a specific user
-      tags:
-      - goals
-  /users/{userID}/tasks:
-    get:
-      consumes:
-      - application/json
-      description: Get paginated and filtered list of tasks for the specified user
-        ID
-      parameters:
-      - description: User ID
-        in: path
-        name: userID
-        required: true
-        type: string
-      - default: 100
-        description: Results limit (1-100)
-        in: query
-        maximum: 100
-        minimum: 1
-        name: limit
-        type: integer
-      - default: 0
-        description: Pagination offset
-        in: query
-        minimum: 0
-        name: offset
-        type: integer
-      - description: Date filter (today/yesterday/YYYY-MM-DD)
-        in: query
-        name: date
-        type: string
-      - description: Filter by completion status
-        in: query
-        name: completed
-        type: boolean
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Tasks returned successfully
-        "400":
-          description: Invalid request parameters
-        "500":
-          description: Server error
-      security:
-      - ApiKeyAuth: []
-      summary: List tasks for a specific user
-      tags:
-      - tasks
 securityDefinitions:
   ApiKeyAuth:
     in: header

@@ -16,12 +16,13 @@ import (
 type contextKey string
 
 const (
-	taskCtxKey contextKey = "task"
-	userCtxKey contextKey = "user"
-	goalCtxKey contextKey = "goal"
+	taskCtxKey  contextKey = "task"
+	userCtxKey  contextKey = "user"
+	goalCtxKey  contextKey = "goal"
+	statsCtxKey contextKey = "stats"
 )
 
-func (app *Application) tasksContextMiddleware(next http.Handler) http.Handler {
+func (app *Application) taskContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		idParam := chi.URLParam(r, "taskID")
 		taskID, err := strconv.ParseInt(idParam, 10, 64)
@@ -119,7 +120,7 @@ func (app *Application) authTokenMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (app *Application) goalsContextMiddleware(next http.Handler) http.Handler {
+func (app *Application) goalContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		goalID, err := strconv.ParseInt(chi.URLParam(r, "goalID"), 10, 64)
 		if err != nil {

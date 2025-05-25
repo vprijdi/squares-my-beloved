@@ -17,7 +17,7 @@ type Storage struct {
 		Create(context.Context, *sql.Tx, *User) error
 		GetByID(ctx context.Context, userID int64) (*User, error)
 		CreateAndInvite(ctx context.Context, user *User, token string, invitationExp time.Duration) error
-		Activate(context.Context, string) error
+		Activate(ctx context.Context, tx *sql.Tx, token string) (int64, error)
 		GetByEmail(ctx context.Context, email string) (*User, error)
 	}
 	Tasks interface {
@@ -33,9 +33,54 @@ type Storage struct {
 		GetAllUserGoals(ctx context.Context, userID int64, tf *GoalFilters) ([]Goal, error)
 	}
 	Progression interface {
-		Create(ctx context.Context, userID int64) (*UserProgression, error)
+		Create(ctx context.Context, tx *sql.Tx, userID int64) (*UserProgression, error)
 		Update(ctx context.Context, progression *UserProgression) error
 		GetByUserID(ctx context.Context, userID int64) (*UserProgression, error)
+	}
+
+	Statistics interface {
+		// Core operations
+		Create(ctx context.Context, tx *sql.Tx, userID int64) (*UserStatistics, error)
+		GetByUserID(ctx context.Context, userID int64) (*UserStatistics, error)
+		Update(ctx context.Context, stats *UserStatistics) error
+
+		// Section-specific updates
+		UpdateAllTimeStats(
+			ctx context.Context,
+			userID int64,
+			highestScore int,
+			highestDate time.Time,
+			lowestScore *int,
+			lowestDate *time.Time,
+		) error
+
+		UpdateTaskStats(
+			ctx context.Context,
+			userID int64,
+			tierCompletions map[int]int,
+		) error
+
+		UpdateTimeStats(
+			ctx context.Context,
+			userID int64,
+			activeDaysIncrement int,
+			minutesSpent int,
+		) error
+
+		UpdateAverages(
+			ctx context.Context,
+			userID int64,
+			dailyScore, weeklyScore, monthlyScore, tasksPerDay float64,
+		) error
+
+		UpdateStreaks(
+			ctx context.Context,
+			userID int64,
+			currentStreak int,
+			longestStreak int,
+			streakStart *time.Time,
+			streakEnd *time.Time,
+		) error
 	}
 }
 
@@ -45,6 +90,7 @@ func NewStorage(db *sql.DB) Storage {
 		Tasks:       &TaskStore{db},
 		Goals:       &GoalStore{db},
 		Progression: &ProgressionStore{db},
+		Statistics:  &StatisticsStore{db},
 	}
 }
 

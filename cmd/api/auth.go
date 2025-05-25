@@ -105,7 +105,7 @@ func (app *Application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 
 	token := chi.URLParam(r, "token")
 
-	err := app.store.Users.Activate(r.Context(), token)
+	err := app.services.UserServices.ActivateAndSetup(r.Context(), token)
 
 	if err != nil {
 		switch err {

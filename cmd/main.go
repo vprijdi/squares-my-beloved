@@ -73,15 +73,12 @@ func main() {
 	defer database.Close()
 	logger.Info("database connection pool has established")
 
-	// Initialize store, services and authenticator
 	storage := store.NewStorage(database)
-	services := services.NewServices(&storage)
+	services := services.NewServices(&storage, database)
 	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.Auth.Token.Secret, cfg.Auth.Token.Iss, cfg.Auth.Token.Iss)
 
-	// Initialize application
 	app := api.NewApplication(cfg, storage, services, logger, jwtAuthenticator)
 
-	// Mount routes and run the server
 	mux := app.Mount()
 	logger.Fatal(app.Run(mux))
 }

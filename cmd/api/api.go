@@ -90,10 +90,12 @@ func (app *Application) Mount() http.Handler {
 
 		r.Route("/tasks", func(r chi.Router) {
 			r.Use(app.authTokenMiddleware)
+
+			r.Get("/", app.listUserTasksHandler)
 			r.Post("/", app.createBatchTasksHandler)
 
 			r.Route("/{taskID}", func(r chi.Router) {
-				r.Use(app.tasksContextMiddleware)
+				r.Use(app.taskContextMiddleware)
 
 				r.Get("/", app.getTaskHandler)
 				r.Patch("/complete", app.completeTaskHandler)
@@ -102,23 +104,28 @@ func (app *Application) Mount() http.Handler {
 
 		r.Route("/goals", func(r chi.Router) {
 			r.Use(app.authTokenMiddleware)
+
+			r.Get("/", app.listUserGoalsHandler)
 			r.Post("/", app.createBatchGoalsHandler)
 
 			r.Route("/{goalID}", func(r chi.Router) {
-				r.Use(app.goalsContextMiddleware)
+				r.Use(app.goalContextMiddleware)
 
 				r.Get("/", app.getGoalHandler)
 				r.Patch("/achieve", app.achieveGoalHandler)
 			})
 		})
 
+		r.Route("/stats", func(r chi.Router) {
+			r.Use(app.authTokenMiddleware)
+
+			r.Get("/", app.listUserStatsHandler)
+			// r.Get("/daily", app.getDailySummariesHandler)
+		})
 		r.Route("/users", func(r chi.Router) {
 			r.Route("/{userID}", func(r chi.Router) {
 				r.Use(app.authTokenMiddleware)
 				r.Get("/", app.getUserHandler)
-
-				r.Get("/tasks", app.listUserTasksHandler)
-				r.Get("/goals", app.listUserGoalsHandler)
 			})
 		})
 	})
@@ -127,7 +134,6 @@ func (app *Application) Mount() http.Handler {
 }
 
 func (app *Application) Run(mux http.Handler) error {
-	// Docs
 	docs.SwaggerInfo.Version = version
 	docs.SwaggerInfo.Host = app.Config.ApiURL
 	docs.SwaggerInfo.BasePath = "/v1"

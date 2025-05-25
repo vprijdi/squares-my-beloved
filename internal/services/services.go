@@ -2,18 +2,22 @@ package services
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/muzhiknastya/squares-my-beloved/internal/store"
 )
 
 type Services struct {
-	TaskServices interface {
-		Create(context.Context, *store.User) error
+	UserServices interface {
+		ActivateAndSetup(ctx context.Context, token string) error
 	}
 }
 
-func NewServices(store *store.Storage) Services {
+func NewServices(store *store.Storage, db *sql.DB) Services {
 	return Services{
-		TaskServices: &TaskService{store: store},
+		UserServices: &UserService{
+			store: store,
+			db:    db,
+		},
 	}
 }

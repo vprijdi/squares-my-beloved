@@ -48,7 +48,7 @@ func newTestApplication(t *testing.T, postgres *sql.DB) *Application {
 
 	store := store.NewStorage(postgres)
 
-	svc := services.NewServices(&store)
+	svc := services.NewServices(&store, postgres)
 	authenticator := auth.NewJWTAuthenticator(cfg.Auth.Token.Secret, cfg.Auth.Token.Iss, cfg.Auth.Token.Iss)
 
 	testApp := NewApplication(cfg, store, svc, logger, authenticator)

@@ -127,7 +127,6 @@ func (app *Application) completeTaskHandler(w http.ResponseWriter, r *http.Reque
 //	@Tags			tasks
 //	@Accept			json
 //	@Produce		json
-//	@Param			userID		path	string	true	"User ID"
 //	@Param			limit		query	int		false	"Results limit (1-100)"	default(100)	minimum(1)	maximum(100)
 //	@Param			offset		query	int		false	"Pagination offset"		default(0)		minimum(0)
 //	@Param			date		query	string	false	"Date filter (today/yesterday/YYYY-MM-DD)"
@@ -136,7 +135,7 @@ func (app *Application) completeTaskHandler(w http.ResponseWriter, r *http.Reque
 //	@Success		201	"Tasks returned successfully"
 //	@Failure		400	"Invalid request parameters"
 //	@Failure		500	"Server error"
-//	@Router			/users/{userID}/tasks [get]
+//	@Router			/tasks [get]
 func (app *Application) listUserTasksHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 

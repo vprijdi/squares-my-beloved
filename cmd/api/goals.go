@@ -123,16 +123,15 @@ func (app *Application) achieveGoalHandler(w http.ResponseWriter, r *http.Reques
 //	@Tags			goals
 //	@Accept			json
 //	@Produce		json
-//	@Param			userID		path		string		true	"User ID"
-//	@Param			limit		query		int			false	"Results limit (1-100)"	default(100)	minimum(1)	maximum(100)
-//	@Param			offset		query		int			false	"Pagination offset"		default(0)		minimum(0)
-//	@Param			achieved	query		boolean		false	"Filter by achievement status"
+//	@Param			limit		query	int		false	"Results limit (1-100)"	default(100)	minimum(1)	maximum(100)
+//	@Param			offset		query	int		false	"Pagination offset"		default(0)		minimum(0)
+//	@Param			achieved	query	boolean	false	"Filter by achievement status"
 //	@Security		ApiKeyAuth
-//	@Success		200		{object}	[]store.Goal	"Goals returned successfully"
-//	@Failure		400		{object}	map[string]string	"Invalid request parameters"
-//	@Failure		401		{object}	map[string]string	"Unauthorized"
-//	@Failure		500		{object}	map[string]string	"Server error"
-//	@Router			/users/{userID}/goals [get]
+//	@Success		200	{object}	[]store.Goal		"Goals returned successfully"
+//	@Failure		400	{object}	map[string]string	"Invalid request parameters"
+//	@Failure		401	{object}	map[string]string	"Unauthorized"
+//	@Failure		500	{object}	map[string]string	"Server error"
+//	@Router			/goals [get]
 func (app *Application) listUserGoalsHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 

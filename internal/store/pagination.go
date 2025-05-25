@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -97,4 +98,27 @@ func (gf GoalFilters) Parse(r *http.Request) (GoalFilters, error) {
 	}
 
 	return gf, nil
+}
+
+type StatisticsFilters struct {
+	Categories []string `json:"categories" validate:"dive,oneof=all_time tasks time averages streaks"`
+}
+
+func (sf *StatisticsFilters) Parse(r *http.Request) (*StatisticsFilters, error) {
+	qs := r.URL.Query()
+
+	sf.Categories = []string{"all_time", "tasks", "time", "averages", "streaks"}
+
+	if catsParam := qs.Get("categories"); catsParam != "" {
+		cats := strings.Split(catsParam, ",")
+		for i, cat := range cats {
+			cats[i] = strings.TrimSpace(cat)
+		}
+
+		if len(cats) > 0 && cats[0] != "" {
+			sf.Categories = cats
+		}
+	}
+
+	return sf, nil
 }

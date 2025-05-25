@@ -24,7 +24,7 @@ const (
 	defaultScore = 0
 )
 
-func (s *ProgressionStore) Create(ctx context.Context, userID int64) (*UserProgression, error) {
+func (s *ProgressionStore) Create(ctx context.Context, tx *sql.Tx, userID int64) (*UserProgression, error) {
 	query := `
         INSERT INTO user_progression (user_id, level, current_exp, total_score)
         VALUES ($1, $2, $3, $4)
@@ -41,7 +41,7 @@ func (s *ProgressionStore) Create(ctx context.Context, userID int64) (*UserProgr
 		TotalScore: defaultScore,
 	}
 
-	err := s.db.QueryRowContext(
+	err := tx.QueryRowContext(
 		ctx,
 		query,
 		userID,
