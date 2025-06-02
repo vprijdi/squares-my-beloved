@@ -1,0 +1,113 @@
+.widget {
+  width: 100%;
+  max-width: 400px;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #f0f0f0;
+}
+
+.chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 120px;
+  gap: 0.5rem;
+}
+
+.barWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.bar {
+  width: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.positive {
+  background-color: #f472b6;
+  border-radius: 0.25rem 0.25rem 0 0;
+}
+
+.negative {
+  background-color: #ef4444;
+  border-radius: 0 0 0.25rem 0.25rem;
+}
+
+.pointsLabel {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #0f0f0f;
+  padding: 2px 0;
+}
+
+.dayLabel {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+/* .title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #f0f0f0;
+}
+
+.container {
+  width: 100%;
+  max-width: 400px; 
+  margin: 0 auto;
+}
+.chartContainer {
+  width: 100%;
+  padding: 0 0.5rem;
+}
+
+.chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 160px;
+  gap: 0.5rem;
+}
+
+.barContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+}
+
+.bar {
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: height 0.3s ease;
+  position: relative;
+}
+
+.pointValue {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #0f0f0f;
+  padding: 2px 0;
+}
+
+.dayLabel {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-weight: 500;
+  margin-top: 0.5rem;
+} */

@@ -2,6 +2,7 @@ import styles from './Home.module.css';
 import Header from '../../components/Header/Header';
 import TaskList from './TaskList/TaskList';
 import { BarChart3, Target } from 'lucide-react';
+import WeeklyWidget from './WeeklyWidget/WeeklyWidget';
 
 export default function Home() {
   return (
@@ -27,10 +28,10 @@ export default function Home() {
         </div>
 
         <div className={styles.rightPanel}>
-          <div className={styles.goalListContainer}>{/* <GoalList /> */}</div>
           <div className={styles.weeklyWidgetContainer}>
-            {/* <WeeklyWidget /> */}
+            <WeeklyWidget />
           </div>
+          <div className={styles.goalListContainer}>{/* <GoalList /> */}</div>
         </div>
       </div>
     </div>

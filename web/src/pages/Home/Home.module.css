@@ -1,7 +1,7 @@
 .container {
   display: flex;
   gap: 1rem;
-  height: 100vh;
+  height: 100hv;
 }
 .leftPanel {
   flex: 3;
@@ -22,13 +22,23 @@
 
 .goalListContainer,
 .weeklyWidgetContainer {
-  flex: 1;
-  background: white;
+  border-radius: 0.5rem;
+  background-color: var(--bg-card);
   border-radius: 0.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
+  margin: 24px;
+  margin-bottom: 0px;
+  padding: 20px;
 }
 
+.goalListContainer {
+  flex: 3;
+}
+.weeklyWidgetContainer {
+  flex: 2;
+  margin-right: 10rem;
+}
 .title {
   font-size: 1.5rem;
   font-weight: bold;
