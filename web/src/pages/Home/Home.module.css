@@ -56,27 +56,3 @@
   align-items: center;
   margin-bottom: 1.5rem;
 }
-
-.tabs {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.tabButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: transparent;
-  border: 1px solid #2e2e2e;
-  border-radius: 0.5rem;
-  color: #f0f0f0;
-  cursor: pointer;
-  font-size: 0.875rem;
-}
-
-.label {
-  font-size: 0.9rem;
-  font-weight: bold;
-}

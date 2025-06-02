@@ -1,4 +1,5 @@
-import styles from './NavigationTabs.module.css';
+import styles from './NagivationTabs.module.css';
+import { BarChart3, Target } from 'lucide-react';
 
 export default function NavigationTabs() {
   return (
