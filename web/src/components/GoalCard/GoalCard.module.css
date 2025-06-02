@@ -1,12 +1,12 @@
 .card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   overflow: hidden;
 }
 
 .something {
-  padding: 1.25rem;
+  padding: 0.9rem;
   cursor: pointer;
   display: flex;
   align-items: center;

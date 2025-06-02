@@ -23,18 +23,21 @@
 .goalListContainer,
 .weeklyWidgetContainer {
   overflow-y: auto;
-  margin: 24px;
+
   margin-bottom: 0px;
 }
 
 .goalListContainer {
   flex: 3;
   overflow-y: visible;
+  margin-right: 6rem;
 }
 .weeklyWidgetContainer {
   padding: 20px;
+  padding-bottom: 0px;
   flex: 2;
   margin-right: 10rem;
+  margin-top: 3.2rem;
   border-radius: 0.5rem;
   background-color: var(--bg-card);
   border-radius: 0.5rem;
