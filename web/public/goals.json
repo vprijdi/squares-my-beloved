@@ -1,0 +1,27 @@
+{
+  "goals": [
+    {
+      "id": 1,
+      "title": "Master React Development",
+      "completion": 65,
+      "subgoals": [
+        { "id": 1, "title": "Learn React Hooks", "completed": true },
+        { "id": 2, "title": "Build 3 Projects", "completed": true },
+        { "id": 3, "title": "Learn State Management", "completed": false },
+        { "id": 4, "title": "Master Testing", "completed": false },
+        { "id": 5, "title": "Deploy Applications", "completed": false }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Complete CS Fundamentals",
+      "completion": 30,
+      "subgoals": [
+        { "id": 1, "title": "Data Structures", "completed": true },
+        { "id": 2, "title": "Algorithms", "completed": false },
+        { "id": 3, "title": "System Design", "completed": false },
+        { "id": 4, "title": "Database Design", "completed": false }
+      ]
+    }
+  ]
+}

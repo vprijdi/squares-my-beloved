@@ -3,6 +3,7 @@ import Header from '../../components/Header/Header';
 import TaskList from './TaskList/TaskList';
 import { BarChart3, Target } from 'lucide-react';
 import WeeklyWidget from './WeeklyWidget/WeeklyWidget';
+import GoalList from './GoalList/GoalList';
 
 export default function Home() {
   return (
@@ -31,7 +32,9 @@ export default function Home() {
           <div className={styles.weeklyWidgetContainer}>
             <WeeklyWidget />
           </div>
-          <div className={styles.goalListContainer}>{/* <GoalList /> */}</div>
+          <div className={styles.goalListContainer}>
+            <GoalList />
+          </div>
         </div>
       </div>
     </div>

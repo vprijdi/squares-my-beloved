@@ -1,6 +1,6 @@
 import styles from './TaskList.module.css';
 import { useState } from 'react';
-import { useTasks } from '../../../context/useTasks';
+import { useTasks } from '../../../hooks/useTasks';
 import TaskCard from '../TaskCard/TaskCard';
 import { Plus } from 'lucide-react';
 

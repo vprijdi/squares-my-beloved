@@ -1,0 +1,55 @@
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.something {
+  padding: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: background-color 0.2s ease;
+  background-color: transparent;
+}
+
+.something:hover {
+  background-color: #202020;
+}
+
+.chevron {
+  size: 16;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+.title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.bar {
+  flex: 1;
+  height: 8px;
+  background-color: #2e2e2e;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.percentage {
+  font-size: 0.875;
+  font-weight: 600;
+  color: var(--accent-pink);
+}
+
+.label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 0.5rem;
+}

@@ -1,4 +1,4 @@
-import { useTasks } from '../../../context/useTasks';
+import { useTasks } from '../../../hooks/useTasks';
 import styles from './TaskCard.module.css';
 import { CheckSquare, Square } from 'lucide-react';
 
