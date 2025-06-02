@@ -1,9 +1,9 @@
 import { useTasks } from '../../../hooks/useTasks';
 import styles from './TaskCard.module.css';
-import { CheckSquare, Square } from 'lucide-react';
+import { CheckSquare, Square, Plus } from 'lucide-react';
 
 export default function TaskCard({ task }) {
-  const { toggleTaskCheckmark } = useTasks();
+  const { toggleTaskCheckmark, increaseRepetitions } = useTasks();
   // const { incrementCompletion } = useTasks();
   // const isDone = task.completions_today >= task.repetitions;
 
@@ -76,6 +76,12 @@ export default function TaskCard({ task }) {
         return '#60a5fa';
     }
   }
+
+  const addRepetition = (e) => {
+    e.stopPropagation();
+    increaseRepetitions(task.id);
+  };
+
   const cardClasses = `${styles.card} ${getTierClass()}`;
 
   return (
@@ -126,6 +132,14 @@ export default function TaskCard({ task }) {
             )}
           </button>
         ))}
+
+        <button
+          onClick={addRepetition}
+          title="Add repetition"
+          className={`${styles.checkbox} ${styles.addCheckbox}`}
+        >
+          <Plus size={16} className={styles.addIcon} />
+        </button>
       </div>
     </div>
   );

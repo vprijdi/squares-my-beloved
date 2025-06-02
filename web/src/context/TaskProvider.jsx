@@ -83,12 +83,26 @@ export function TaskProvider({ children }) {
     );
   };
 
+  const increaseRepetitions = (taskId) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              repetitions: task.repetitions + 1,
+              completed: [...task.completed, false],
+            }
+          : task
+      )
+    );
+  };
   const value = {
     tasks,
     loading,
     incrementCompletion,
     toggleTaskCheckmark,
     newTask,
+    increaseRepetitions,
   };
 
   useEffect(() => {

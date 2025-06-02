@@ -14,6 +14,7 @@ export default function Home() {
           <div className={styles.leftHeader}>
             <h2 className={styles.title}>Today's Tasks</h2>
             <div className={styles.tabs}>
+              <label className={styles.label}>Score: 137</label>
               <button className={styles.tabButton}>
                 <BarChart3 size={16} />
                 Analytics

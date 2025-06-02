@@ -40,6 +40,15 @@
   justify-content: center;
 }
 
+.addCheckbox {
+  border: 1px dashed #888 !important;
+  border-radius: 4px;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+.addIcon {
+  color: #888;
+}
 .quick .checkboxIcon {
   size: 18;
   color: var(--accent-blue);
