@@ -1,0 +1,224 @@
+.card {
+  background-color: #1a1a1a;
+  border: 1px solid #2e2e2e;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.2s ease;
+  border: 0.5px solid;
+}
+
+.card:hover {
+  background-color: #202020;
+}
+
+.card.quick {
+  border-color: var(--accent-blue);
+}
+.card.medium {
+  border-color: var(--accent-purple);
+}
+.card.long {
+  border-color: var(--accent-pink);
+}
+.something {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.checkbox {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quick .checkboxIcon {
+  size: 18;
+  color: var(--accent-blue);
+}
+
+.medium .checkboxIcon {
+  color: var(--accent-purple);
+  size: 18;
+}
+
+.long .checkboxIcon {
+  color: var(--accent-pink);
+  size: 18;
+}
+
+.unchecked {
+  color: #6b7280 !important;
+}
+
+.taskMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.duration {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.quick .duration {
+  color: var(--accent-blue);
+}
+
+.medium .duration {
+  color: var(--accent-purple);
+}
+.long .duration {
+  color: var(--accent-pink);
+}
+.grey {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+/* .card {
+  border: 2px solid;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+.card:hover {
+  transform: scale(1.01);
+}
+.card.major {
+  border-color: var(--accent-pink);
+}
+
+.card.medium {
+  border-color: var(--accent-purple);
+}
+
+.card.quick {
+  border-color: #60a5fa;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin-top: 0.25rem;
+}
+
+.taskCheckboxes {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.checkbox {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid #6b7280;
+  border-radius: 0.5rem;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.checkbox:hover {
+  transform: scale(1.1);
+  border-color: #f472b6;
+}
+
+.checkbox.completed {
+  background-color: #ec4899;
+  border-color: #ec4899;
+}
+
+.checkboxIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.checkbox.completed .checkboxIcon {
+  color: white;
+}
+
+.checkbox:not(.completed) .checkboxIcon {
+  color: #9ca3af;
+}
+.drawnCheckbox {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.drawnCheckbox:disabled {
+  cursor: default;
+}
+
+.drawnCheckbox:not(:disabled):hover {
+  transform: scale(1.1);
+}
+
+.checkIcon {
+  display: block;
+}
+
+.squareOutline {
+  stroke: #6b7280;
+  stroke-width: 2;
+  fill: none;
+  transition: all 0.3s ease;
+}
+
+.drawnCheckbox.drawn .squareOutline {
+  stroke: #ec4899; /
+}
+
+.drawnCheckmark {
+  stroke: #ec4899; 
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  animation: drawIn 0.5s ease-out forwards;
+}
+
+@keyframes drawIn {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+} */

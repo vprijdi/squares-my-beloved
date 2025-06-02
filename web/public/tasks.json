@@ -1,0 +1,56 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "title": "Learn Go",
+      "tier": 2,
+      "repetitions": 2,
+      "is_optional": false,
+      "completed": [false, false],
+      "completions_today": 2,
+      "completion_count": 17,
+      "last_updated": "2024-05-28",
+      "created_at": "2024-05-25T09:00:00Z"
+    },
+    {
+      "id": 4,
+      "user_id": 1,
+      "title": "Practice Algorithm Problems",
+      "tier": 2,
+      "repetitions": 3,
+      "is_optional": false,
+      "completed": [true, true, false],
+      "completions_today": 0,
+      "completion_count": 8,
+      "last_updated": "2024-05-27",
+      "created_at": "2024-05-24T15:30:00Z"
+    },
+    {
+      "id": 2,
+      "user_id": 1,
+      "title": "10-minute meditation",
+      "tier": 0,
+      "repetitions": 1,
+      "is_optional": true,
+      "completed": [false],
+      "completions_today": 2,
+      "completion_count": 42,
+      "last_updated": "2024-05-28",
+      "created_at": "2024-05-20T07:00:00Z"
+    },
+    {
+      "id": 3,
+      "user_id": 1,
+      "title": "Practice TypeScript",
+      "tier": 1,
+      "repetitions": 2,
+      "is_optional": false,
+      "completed": [true, false],
+      "completions_today": 0,
+      "completion_count": 8,
+      "last_updated": "2024-05-27",
+      "created_at": "2024-05-24T15:30:00Z"
+    }
+  ]
+}

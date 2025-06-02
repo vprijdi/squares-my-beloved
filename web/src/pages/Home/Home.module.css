@@ -1,0 +1,62 @@
+.container {
+  display: flex;
+  gap: 1rem;
+  height: 100vh;
+}
+.leftPanel {
+  flex: 3;
+  /* background-color: var(--bg-card); */
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  margin: 24px;
+  margin-right: 12px;
+  padding: 30px;
+}
+.rightPanel {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.goalListContainer,
+.weeklyWidgetContainer {
+  flex: 1;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.leftHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+}
+
+.tabButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  border: 1px solid #2e2e2e;
+  border-radius: 0.5rem;
+  color: #f0f0f0;
+  cursor: pointer;
+  font-size: 0.875rem;
+}

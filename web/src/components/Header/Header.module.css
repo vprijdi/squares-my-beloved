@@ -81,7 +81,7 @@
 .xpProgress {
   background: linear-gradient(
     to right,
-    hsla(330, 85%, 70%, 0.9),
+    hsla(330, 85%, 70%, 0.8),
     hsla(330, 85%, 70%, 1)
   );
   height: 0.5rem;
