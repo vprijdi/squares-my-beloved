@@ -8,7 +8,7 @@ export default function WeeklyWidget() {
     { day: 'Thu', points: 4 },
     { day: 'Fri', points: -1 },
     { day: 'Sat', points: 5 },
-    { day: 'Sun', points: 3 },
+    { day: 'Sun', points: 0 },
   ];
 
   return (
@@ -21,16 +21,21 @@ export default function WeeklyWidget() {
             <div key={day} className={styles.barContainer}>
               <div
                 style={{
-                  height: `${Math.abs(points) * 8 + 20}px`,
+                  height:
+                    points === 0 ? '2px' : `${Math.abs(points) * 8 + 20}px`,
                   width: '24px',
-                  backgroundColor: points >= 0 ? '#f472b6' : '#d4d4d8',
-                  borderRadius:
-                    points >= 0 ? '0.25rem 0.25rem 0 0' : '0 0 0.25rem 0.25rem',
+                  backgroundColor:
+                    points === 0
+                      ? '#f472b6'
+                      : points > 0
+                        ? '#f472b6'
+                        : '#d4d4d8',
+                  borderRadius: '0',
                   display: 'flex',
-                  alignItems: points >= 0 ? 'flex-start' : 'flex-end',
+                  alignItems: points > 0 ? 'flex-start' : 'flex-end',
                   justifyContent: 'center',
                   marginBottom: points < 0 ? `${Math.abs(points) * 8}px` : '0',
-                  marginTop: points >= 0 ? `${(8 - points) * 8}px` : '0',
+                  marginTop: points > 0 ? `${(8 - points) * 8}px` : '0',
                 }}
               >
                 <span
