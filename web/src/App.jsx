@@ -10,6 +10,7 @@ import {
 } from 'react-router-dom';
 import OtherPage from './pages/OtherPage/OtherPage';
 import { GoalProvider } from './context/GoalProvider';
+import Analytics from './pages/Analytics/Analytics';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
               </TaskProvider>
             }
           ></Route>
+          <Route path="/analytics" element={<Analytics />}></Route>
           <Route path="/other" element={<OtherPage />}></Route>
         </Routes>
       </Router>
