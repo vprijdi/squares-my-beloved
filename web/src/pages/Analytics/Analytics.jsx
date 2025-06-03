@@ -2,6 +2,7 @@ import styles from './Analytics.module.css';
 import BackToHomeButton from '../../components/BackToHomeButton/BackToHomeButton.jsx';
 import Header from '../../components/Header/Header.jsx';
 import StatisticsCard from './StatisticsCard/StatisticsCard.jsx';
+import BadgeList from './BadgeList/BadgeList.jsx';
 
 export default function Analytics() {
   return (
@@ -14,6 +15,7 @@ export default function Analytics() {
 
         <div>
           <StatisticsCard />
+          <BadgeList />
         </div>
       </div>
     </div>
