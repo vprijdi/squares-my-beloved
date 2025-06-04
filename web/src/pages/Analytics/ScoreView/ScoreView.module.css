@@ -1,0 +1,11 @@
+.container {
+  background-color: #1a1a1a;
+  border: 1px solid #2e2e2e;
+  border-radius: 0.5rem;
+}
+.buttonContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}

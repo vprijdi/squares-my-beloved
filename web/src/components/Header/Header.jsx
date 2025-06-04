@@ -23,7 +23,7 @@ export default function Header() {
           <div className={styles.statItem}>
             <div className={styles.statContent}>
               <div className={styles.statLabel}>Level 10</div>
-              <div className={styles.statSublabel}>500 / 1000 XP</div>
+              <div className={styles.statSublabel}>800 / 1000 XP</div>
             </div>
           </div>
 

@@ -3,11 +3,12 @@ import BackToHomeButton from '../../components/BackToHomeButton/BackToHomeButton
 import Header from '../../components/Header/Header.jsx';
 import StatisticsCard from './StatisticsCard/StatisticsCard.jsx';
 import BadgeList from './BadgeList/BadgeList.jsx';
+import ScoreView from './ScoreView/ScoreView.jsx';
 
 export default function Analytics() {
   return (
     <div>
-      <Header></Header>
+      <Header />
       <div className={styles.container}>
         <div>
           <BackToHomeButton />
@@ -16,6 +17,7 @@ export default function Analytics() {
         <div>
           <StatisticsCard />
           <BadgeList />
+          <ScoreView />
         </div>
       </div>
     </div>
