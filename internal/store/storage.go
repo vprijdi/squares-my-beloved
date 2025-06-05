@@ -23,7 +23,7 @@ type Storage struct {
 	Tasks interface {
 		CreateTasks(context.Context, []*Task) error
 		GetByID(ctx context.Context, taskID int64) (*Task, error)
-		Complete(ctx context.Context, taskID int64) error
+		Complete(ctx context.Context, taskID int64, newCompleted []bool) error
 		GetAllUserTasks(ctx context.Context, userID int64, tf *TaskFilters) ([]Task, error)
 	}
 	Goals interface {

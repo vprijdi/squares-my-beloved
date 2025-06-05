@@ -93,11 +93,11 @@ func Seed(store store.Storage, db *sql.DB) {
 		return
 	}
 
-	goals := generateGoals(15, users)
-	if err := store.Goals.CreateGoals(ctx, goals); err != nil {
-		log.Println("Error creating goals:", err)
-		return
-	}
+	// goals := generateGoals(15, users)
+	// if err := store.Goals.CreateGoals(ctx, goals); err != nil {
+	// 	log.Println("Error creating goals:", err)
+	// 	return
+	// }
 
 }
 

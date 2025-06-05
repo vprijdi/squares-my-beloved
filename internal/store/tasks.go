@@ -3,6 +3,8 @@ package store
 import (
 	"context"
 	"database/sql"
+
+	"github.com/lib/pq"
 )
 
 type TaskStore struct {
@@ -17,7 +19,7 @@ type Task struct {
 	CreatedAt        string `json:"created_at"`
 	UpdatedAt        string `json:"updated_at"`
 	CompletionsCount int32  `json:"completions_count"`
-	IsCompleted      bool   `json:"is_completed"`
+	Completed      []bool   `json:"completed"`
 	Tier             int32  `json:"tier"`
 }
 
@@ -42,7 +44,7 @@ func (s *TaskStore) create(ctx context.Context, tx *sql.Tx, task *Task) error {
 		&task.ID,
 		&task.CreatedAt,
 		&task.UpdatedAt,
-		&task.IsCompleted,
+		pq.Array(&task.Completed),
 		&task.CompletionsCount,
 	)
 
@@ -76,7 +78,7 @@ func (s *TaskStore) GetByID(ctx context.Context, taskID int64) (*Task, error) {
 		&task.CreatedAt,
 		&task.UpdatedAt,
 		&task.CompletionsCount,
-		&task.IsCompleted,
+		pq.Array(&task.Completed),
 		&task.Tier,
 	)
 
@@ -90,20 +92,20 @@ func (s *TaskStore) GetByID(ctx context.Context, taskID int64) (*Task, error) {
 	}
 }
 
-func (s *TaskStore) Complete(ctx context.Context, taskID int64) error {
+func (s *TaskStore) Complete(ctx context.Context, taskID int64, newCompleted[]bool) error {
 	query := `
         UPDATE tasks 
         SET 
             completions_count = completions_count + 1,
             updated_at = NOW(),
-			completed = TRUE
+			completed = $2 
         WHERE id = $1
     `
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	result, err := s.db.ExecContext(ctx, query, taskID)
+	result, err := s.db.ExecContext(ctx, query, taskID, pq.Array(newCompleted))
 	if err != nil {
 		return err
 	}
@@ -127,7 +129,6 @@ func (s *TaskStore) GetAllUserTasks(ctx context.Context, userID int64, tf *TaskF
 	FROM tasks t
 	WHERE t.user_id = $1
 	  AND ($4::text IS NULL OR t.created_at::date = $4::date)
-	  AND ($5::boolean IS NULL OR t.completed = $5)
 	ORDER BY t.created_at DESC
 	LIMIT $2
 	OFFSET $3;
@@ -136,7 +137,7 @@ func (s *TaskStore) GetAllUserTasks(ctx context.Context, userID int64, tf *TaskF
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, userID, tf.Limit, tf.Offset, tf.Date, tf.Completed)
+	rows, err := s.db.QueryContext(ctx, query, userID, tf.Limit, tf.Offset, tf.Date )
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +153,7 @@ func (s *TaskStore) GetAllUserTasks(ctx context.Context, userID int64, tf *TaskF
 			&t.CreatedAt,
 			&t.UpdatedAt,
 			&t.CompletionsCount,
-			&t.IsCompleted,
+			pq.Array(&t.Completed),
 			&t.Tier,
 		)
 		if err != nil {

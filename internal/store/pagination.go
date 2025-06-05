@@ -12,7 +12,6 @@ type TaskFilters struct {
 	Date      *string `json:"date"` // "today", "yesterday", or "YYYY-MM-DD"
 	Limit     int     `json:"limit" validate:"gte=1,lte=100"`
 	Offset    int     `json:"offset" validate:"gte=0"`
-	Completed *bool   `json:"completed"`
 }
 
 type GoalFilters struct {
@@ -21,7 +20,7 @@ type GoalFilters struct {
 	Achieved *bool `json:"completed"`
 }
 
-func (tf TaskFilters) Parse(r *http.Request) (TaskFilters, error) {
+func (tf *TaskFilters) Parse(r *http.Request) (*TaskFilters, error) {
 	qs := r.URL.Query()
 
 	limit := qs.Get("limit")
@@ -56,15 +55,6 @@ func (tf TaskFilters) Parse(r *http.Request) (TaskFilters, error) {
 			}
 			tf.Date = &date
 		}
-	}
-
-	completed := qs.Get("completed")
-	if completed != "" {
-		c, err := strconv.ParseBool(completed)
-		if err != nil {
-			return tf, err
-		}
-		tf.Completed = &c
 	}
 
 	return tf, nil
